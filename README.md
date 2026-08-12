@@ -1,3 +1,2 @@
 # SR-STUDIES
-SR STUDIES - Official Coaching &amp; Study App
-YT - Kumar ranjan official
+SR STUDIES - BY KUMAR RANJAN OFFICIAL 
