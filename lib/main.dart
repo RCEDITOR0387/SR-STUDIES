@@ -14,61 +14,36 @@ class SRStudiesApp extends StatelessWidget {
       title: 'SR STUDIES',
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
-        ),
+        colorSchemeSeed: Colors.indigo,
+        scaffoldBackgroundColor: const Color(0xFFF7F8FC),
       ),
-      home: const HomeScreen(),
+      home: const HomePage(),
     );
   }
 }
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomePageState extends State<HomePage> {
   int selectedIndex = 0;
 
-  final List<String> titles = [
-    'Home',
-    'Courses',
-    'Notes',
-    'Tests',
-    'Profile',
+  final List<Widget> pages = const [
+    HomeTab(),
+    CoursesTab(),
+    TestsTab(),
+    NotesTab(),
+    ProfileTab(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'SR STUDIES',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
-          ),
-        ],
-      ),
-
-      body: selectedIndex == 0
-          ? const HomeContent()
-          : Center(
-              child: Text(
-                titles[selectedIndex],
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-
+      body: pages[selectedIndex],
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: (index) {
@@ -88,14 +63,14 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Courses',
           ),
           NavigationDestination(
-            icon: Icon(Icons.description_outlined),
-            selectedIcon: Icon(Icons.description),
-            label: 'Notes',
-          ),
-          NavigationDestination(
             icon: Icon(Icons.quiz_outlined),
             selectedIcon: Icon(Icons.quiz),
             label: 'Tests',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.description_outlined),
+            selectedIcon: Icon(Icons.description),
+            label: 'Notes',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
@@ -108,179 +83,149 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class HomeContent extends StatelessWidget {
-  const HomeContent({super.key});
+class HomeTab extends StatelessWidget {
+  const HomeTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Welcome to SR STUDIES 👋',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: 6),
-
-          Text(
-            'Learn • Practice • Succeed',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey.shade600,
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(22),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: Theme.of(context).colorScheme.primaryContainer,
-            ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.school, size: 45),
-                SizedBox(height: 12),
-                Text(
-                  'By Kumar ranjan official',
-                  style: TextStyle(
-                    fontSize: 21,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 6),
-                Text(
-                  'Courses, classes, notes and tests — all in one place.',
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 25),
-
-          const Text(
-            'Quick Access',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: 14),
-
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.25,
-            children: const [
-              QuickCard(
-                icon: Icons.menu_book,
-                title: 'Courses',
-                subtitle: 'Explore courses',
-              ),
-              QuickCard(
-                icon: Icons.play_circle,
-                title: 'Classes',
-                subtitle: 'Watch classes',
-              ),
-              QuickCard(
-                icon: Icons.picture_as_pdf,
-                title: 'Notes',
-                subtitle: 'Study PDFs',
-              ),
-              QuickCard(
-                icon: Icons.quiz,
-                title: 'Tests',
-                subtitle: 'Practice tests',
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 25),
-
-          const Text(
-            'Why SR STUDIES?',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          const FeatureTile(
-            icon: Icons.video_library,
-            title: 'Video Classes',
-            subtitle: 'Learn from recorded and live classes.',
-          ),
-
-          const FeatureTile(
-            icon: Icons.description,
-            title: 'Study Notes',
-            subtitle: 'Access your study material anytime.',
-          ),
-
-          const FeatureTile(
-            icon: Icons.emoji_events,
-            title: 'Tests & Results',
-            subtitle: 'Practice and track your performance.',
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class QuickCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  const QuickCard({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(15),
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              icon,
-              size: 35,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const Spacer(),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 17,
+            const Text(
+              'SR STUDIES',
+              style: TextStyle(
+                fontSize: 28,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            Text(
-              subtitle,
+
+            const SizedBox(height: 6),
+
+            const Text(
+              'By Kumar ranjan official',
               style: TextStyle(
-                color: Colors.grey.shade600,
+                fontSize: 15,
+                color: Colors.grey,
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(22),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFF3949AB),
+                    Color(0xFF5C6BC0),
+                  ],
+                ),
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.school,
+                    color: Colors.white,
+                    size: 42,
+                  ),
+                  SizedBox(height: 14),
+                  Text(
+                    'Welcome to SR STUDIES',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 23,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Learn • Practice • Succeed',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 28),
+
+            const Text(
+              'Quick Access',
+              style: TextStyle(
+                fontSize: 21,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            Row(
+              children: [
+                Expanded(
+                  child: QuickCard(
+                    icon: Icons.menu_book,
+                    title: 'Courses',
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: QuickCard(
+                    icon: Icons.quiz,
+                    title: 'Tests',
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            Row(
+              children: [
+                Expanded(
+                  child: QuickCard(
+                    icon: Icons.picture_as_pdf,
+                    title: 'Notes',
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: QuickCard(
+                    icon: Icons.emoji_events,
+                    title: 'Results',
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 28),
+
+            const Text(
+              'Latest Updates',
+              style: TextStyle(
+                fontSize: 21,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            Card(
+              child: ListTile(
+                leading: const CircleAvatar(
+                  child: Icon(Icons.notifications),
+                ),
+                title: const Text('Welcome to SR STUDIES'),
+                subtitle: const Text(
+                  'Your learning journey starts here.',
+                ),
               ),
             ),
           ],
@@ -290,30 +235,98 @@ class QuickCard extends StatelessWidget {
   }
 }
 
-class FeatureTile extends StatelessWidget {
+class QuickCard extends StatelessWidget {
   final IconData icon;
   final String title;
-  final String subtitle;
 
-  const FeatureTile({
+  const QuickCard({
     super.key,
     required this.icon,
     required this.title,
-    required this.subtitle,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: CircleAvatar(
-        child: Icon(icon),
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 22),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              size: 34,
+              color: Colors.indigo,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.bold),
+    );
+  }
+}
+
+class CoursesTab extends StatelessWidget {
+  const CoursesTab({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text(
+        '📚 Courses\n\nCourses will appear here.',
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 20),
       ),
-      subtitle: Text(subtitle),
+    );
+  }
+}
+
+class TestsTab extends StatelessWidget {
+  const TestsTab({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text(
+        '📝 Tests\n\nTests will appear here.',
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 20),
+      ),
+    );
+  }
+}
+
+class NotesTab extends StatelessWidget {
+  const NotesTab({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text(
+        '📄 Notes\n\nStudy notes will appear here.',
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 20),
+      ),
+    );
+  }
+}
+
+class ProfileTab extends StatelessWidget {
+  const ProfileTab({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text(
+        '👤 Profile\n\nYour profile will appear here.',
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 20),
+      ),
     );
   }
 }
