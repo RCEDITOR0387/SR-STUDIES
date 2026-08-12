@@ -45,7 +45,7 @@ class HomePage extends StatelessWidget {
               ),
             ),
             SizedBox(height: 10),
-            Text('Official Coaching & Study App'),
+            Text('By Kumar ranjan official'),
           ],
         ),
       ),
