@@ -23,7 +23,7 @@ jobs:
       - name: Create Flutter Project
         run: |
           if [ ! -f pubspec.yaml ]; then
-            flutter create .
+            flutter create --project-name sr_studies .
           fi
 
       - name: Get Dependencies
