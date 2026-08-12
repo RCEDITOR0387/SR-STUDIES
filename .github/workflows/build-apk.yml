@@ -1,0 +1,39 @@
+name: Build SR STUDIES APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.0'
+          channel: stable
+
+      - name: Create Flutter Project
+        run: |
+          if [ ! -f pubspec.yaml ]; then
+            flutter create .
+          fi
+
+      - name: Get Dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SR-STUDIES-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
