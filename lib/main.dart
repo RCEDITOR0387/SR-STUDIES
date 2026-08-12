@@ -17,10 +17,169 @@ class SRStudiesApp extends StatelessWidget {
         colorSchemeSeed: Colors.indigo,
         scaffoldBackgroundColor: const Color(0xFFF7F8FC),
       ),
-      home: const HomePage(),
+      home: const LoginPage(),
     );
   }
 }
+
+// ---------------- LOGIN ----------------
+
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  bool hidePassword = true;
+
+  void login() {
+    if (emailController.text.trim().isEmpty ||
+        passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter email and password'),
+        ),
+      );
+      return;
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const HomePage(),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                const Icon(
+                  Icons.school,
+                  size: 80,
+                  color: Colors.indigo,
+                ),
+
+                const SizedBox(height: 15),
+
+                const Text(
+                  'SR STUDIES',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 6),
+
+                const Text(
+                  'Learn • Practice • Succeed',
+                  style: TextStyle(
+                    color: Colors.grey,
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                TextField(
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: const Icon(Icons.email_outlined),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                TextField(
+                  controller: passwordController,
+                  obscureText: hidePassword,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        hidePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          hidePassword = !hidePassword;
+                        });
+                      },
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: FilledButton(
+                    onPressed: login,
+                    child: const Text(
+                      'LOGIN',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                TextButton(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Signup will be added with Firebase.',
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Create New Account',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------- HOME ----------------
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -32,7 +191,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int selectedIndex = 0;
 
-  final List<Widget> pages = const [
+  final pages = const [
     HomeTab(),
     CoursesTab(),
     TestsTab(),
@@ -83,6 +242,8 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
+// ---------------- HOME TAB ----------------
+
 class HomeTab extends StatelessWidget {
   const HomeTab({super.key});
 
@@ -95,9 +256,9 @@ class HomeTab extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'SR STUDIES',
+              'Welcome to SR STUDIES 👋',
               style: TextStyle(
-                fontSize: 28,
+                fontSize: 26,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -105,9 +266,8 @@ class HomeTab extends StatelessWidget {
             const SizedBox(height: 6),
 
             const Text(
-              'By Kumar ranjan official',
+              'Your learning journey starts here.',
               style: TextStyle(
-                fontSize: 15,
                 color: Colors.grey,
               ),
             ),
@@ -132,23 +292,22 @@ class HomeTab extends StatelessWidget {
                   Icon(
                     Icons.school,
                     color: Colors.white,
-                    size: 42,
+                    size: 45,
                   ),
-                  SizedBox(height: 14),
+                  SizedBox(height: 12),
                   Text(
-                    'Welcome to SR STUDIES',
+                    'Study Smarter',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 23,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  SizedBox(height: 6),
                   Text(
-                    'Learn • Practice • Succeed',
+                    'Courses • Classes • Notes • Tests',
                     style: TextStyle(
                       color: Colors.white70,
-                      fontSize: 15,
                     ),
                   ),
                 ],
@@ -168,14 +327,14 @@ class HomeTab extends StatelessWidget {
             const SizedBox(height: 15),
 
             Row(
-              children: [
+              children: const [
                 Expanded(
                   child: QuickCard(
                     icon: Icons.menu_book,
                     title: 'Courses',
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: QuickCard(
                     icon: Icons.quiz,
@@ -188,14 +347,14 @@ class HomeTab extends StatelessWidget {
             const SizedBox(height: 12),
 
             Row(
-              children: [
+              children: const [
                 Expanded(
                   child: QuickCard(
                     icon: Icons.picture_as_pdf,
                     title: 'Notes',
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: QuickCard(
                     icon: Icons.emoji_events,
@@ -203,30 +362,6 @@ class HomeTab extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-
-            const SizedBox(height: 28),
-
-            const Text(
-              'Latest Updates',
-              style: TextStyle(
-                fontSize: 21,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            Card(
-              child: ListTile(
-                leading: const CircleAvatar(
-                  child: Icon(Icons.notifications),
-                ),
-                title: const Text('Welcome to SR STUDIES'),
-                subtitle: const Text(
-                  'Your learning journey starts here.',
-                ),
-              ),
             ),
           ],
         ),
@@ -270,6 +405,8 @@ class QuickCard extends StatelessWidget {
     );
   }
 }
+
+// ---------------- OTHER TABS ----------------
 
 class CoursesTab extends StatelessWidget {
   const CoursesTab({super.key});
@@ -321,11 +458,43 @@ class ProfileTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        '👤 Profile\n\nYour profile will appear here.',
-        textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 20),
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircleAvatar(
+            radius: 45,
+            child: Icon(
+              Icons.person,
+              size: 50,
+            ),
+          ),
+
+          const SizedBox(height: 15),
+
+          const Text(
+            'My Profile',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          OutlinedButton.icon(
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const LoginPage(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.logout),
+            label: const Text('Logout'),
+          ),
+        ],
       ),
     );
   }
