@@ -5,10 +5,90 @@ import 'package:firebase_auth/firebase_auth.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp();
-
-  runApp(const SRStudiesApp());
+  try {
+    await Firebase.initializeApp();
+    runApp(const SRStudiesApp());
+  } catch (e) {
+    runApp(FirebaseErrorApp(error: e.toString()));
+  }
 }
+
+// --------------------------------------------------
+// FIREBASE ERROR SCREEN
+// --------------------------------------------------
+
+class FirebaseErrorApp extends StatelessWidget {
+  final String error;
+
+  const FirebaseErrorApp({
+    super.key,
+    required this.error,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: const Color(0xffF8F9FF),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Center(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 90,
+                      color: Colors.red,
+                    ),
+
+                    const SizedBox(height: 25),
+
+                    const Text(
+                      'Firebase Error',
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    Text(
+                      error,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 16,
+                      ),
+                    ),
+
+                    const SizedBox(height: 30),
+
+                    const Text(
+                      'google-services.json और Firebase configuration check करें.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// --------------------------------------------------
+// MAIN APP
+// --------------------------------------------------
 
 class SRStudiesApp extends StatelessWidget {
   const SRStudiesApp({super.key});
@@ -117,15 +197,20 @@ class _LoginScreenState extends State<LoginScreen> {
     switch (code) {
       case 'invalid-email':
         return 'Email सही नहीं है';
+
       case 'user-not-found':
         return 'यह Email registered नहीं है';
+
       case 'wrong-password':
       case 'invalid-credential':
         return 'Email या Password गलत है';
+
       case 'user-disabled':
         return 'यह account बंद कर दिया गया है';
+
       case 'too-many-requests':
         return 'बहुत ज्यादा attempts हुए हैं, थोड़ी देर बाद कोशिश करें';
+
       default:
         return 'Login failed: $code';
     }
@@ -135,7 +220,9 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+      SnackBar(
+        content: Text(message),
+      ),
     );
   }
 
@@ -153,7 +240,6 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               const SizedBox(height: 25),
 
-              // Logo
               const Icon(
                 Icons.school,
                 size: 105,
@@ -184,7 +270,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 75),
 
-              // Email
               TextField(
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -196,13 +281,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     vertical: 22,
+                    horizontal: 20,
                   ),
                 ),
               ),
 
               const SizedBox(height: 30),
 
-              // Password
               TextField(
                 controller: passwordController,
                 obscureText: obscurePassword,
@@ -226,13 +311,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     vertical: 22,
+                    horizontal: 20,
                   ),
                 ),
               ),
 
               const SizedBox(height: 35),
 
-              // Login button
               SizedBox(
                 width: double.infinity,
                 height: 70,
@@ -261,7 +346,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 40),
 
-              // Create account
               TextButton(
                 onPressed: () {
                   Navigator.push(
@@ -323,7 +407,9 @@ class _SignupScreenState extends State<SignupScreen> {
     }
 
     if (password.length < 6) {
-      showMessage('Password कम से कम 6 characters का होना चाहिए');
+      showMessage(
+        'Password कम से कम 6 characters का होना चाहिए',
+      );
       return;
     }
 
@@ -341,7 +427,9 @@ class _SignupScreenState extends State<SignupScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Account successfully created!'),
+          content: Text(
+            'Account successfully created!',
+          ),
         ),
       );
 
@@ -349,7 +437,9 @@ class _SignupScreenState extends State<SignupScreen> {
     } on FirebaseAuthException catch (e) {
       showMessage(getAuthError(e.code));
     } catch (e) {
-      showMessage('Account बनाने में समस्या हुई');
+      showMessage(
+        'Account बनाने में समस्या हुई',
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -363,12 +453,16 @@ class _SignupScreenState extends State<SignupScreen> {
     switch (code) {
       case 'email-already-in-use':
         return 'यह Email पहले से registered है';
+
       case 'invalid-email':
         return 'Email सही नहीं है';
+
       case 'weak-password':
         return 'Password बहुत कमजोर है';
+
       case 'operation-not-allowed':
         return 'Email/Password login Firebase में enable नहीं है';
+
       default:
         return 'Signup failed: $code';
     }
@@ -378,7 +472,9 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+      SnackBar(
+        content: Text(message),
+      ),
     );
   }
 
@@ -425,12 +521,15 @@ class _SignupScreenState extends State<SignupScreen> {
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   hintText: 'Email',
-                  prefixIcon: const Icon(Icons.email_outlined),
+                  prefixIcon: const Icon(
+                    Icons.email_outlined,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(25),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     vertical: 22,
+                    horizontal: 20,
                   ),
                 ),
               ),
@@ -442,7 +541,9 @@ class _SignupScreenState extends State<SignupScreen> {
                 obscureText: obscurePassword,
                 decoration: InputDecoration(
                   hintText: 'Password',
-                  prefixIcon: const Icon(Icons.lock_outline),
+                  prefixIcon: const Icon(
+                    Icons.lock_outline,
+                  ),
                   suffixIcon: IconButton(
                     icon: Icon(
                       obscurePassword
@@ -460,6 +561,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     vertical: 22,
+                    horizontal: 20,
                   ),
                 ),
               ),
@@ -512,13 +614,16 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final User? user = FirebaseAuth.instance.currentUser;
+    final User? user =
+        FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           'SR STUDIES',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
         ),
         actions: [
           IconButton(
@@ -529,7 +634,8 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment:
+              MainAxisAlignment.center,
           children: [
             const Icon(
               Icons.school,
