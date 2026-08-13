@@ -13,9 +13,11 @@ dependencies:
 
   cupertino_icons: ^1.0.8
 
+  # Firebase
   firebase_core: ^3.15.2
   firebase_auth: ^5.6.2
 
+  # Open YouTube, Instagram, Telegram etc.
   url_launcher: ^6.3.2
 
 dev_dependencies:
