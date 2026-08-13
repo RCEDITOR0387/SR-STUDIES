@@ -1,6 +1,12 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp();
+
   runApp(const SRStudiesApp());
 }
 
@@ -14,40 +20,104 @@ class SRStudiesApp extends StatelessWidget {
       title: 'SR STUDIES',
       theme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: Colors.indigo,
-        scaffoldBackgroundColor: const Color(0xFFF7F8FC),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF4B59B8),
+        ),
       ),
-      home: const LoginPage(),
+      home: const AuthGate(),
+    );
+  }
+}
+
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (snapshot.hasData) {
+          return const HomeScreen();
+        }
+
+        return const LoginScreen();
+      },
     );
   }
 }
 
 // ================= LOGIN =================
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+
+  bool loading = false;
   bool hidePassword = true;
 
-  void login() {
-    if (emailController.text.trim().isEmpty ||
-        passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter email and password')),
-      );
+  Future<void> login() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      showMessage('Email और Password दोनों भरें');
       return;
     }
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const HomePage()),
+    setState(() {
+      loading = true;
+    });
+
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    } on FirebaseAuthException catch (e) {
+      String message = 'Login failed';
+
+      if (e.code == 'user-not-found') {
+        message = 'यह account मौजूद नहीं है';
+      } else if (e.code == 'wrong-password' ||
+          e.code == 'invalid-credential') {
+        message = 'Email या Password गलत है';
+      } else if (e.code == 'invalid-email') {
+        message = 'Email सही नहीं है';
+      } else if (e.code == 'too-many-requests') {
+        message = 'बहुत ज्यादा attempts हुए हैं। थोड़ी देर बाद कोशिश करें।';
+      }
+
+      showMessage(message);
+    } catch (e) {
+      showMessage('कुछ गलत हुआ। फिर कोशिश करें।');
+    }
+
+    if (mounted) {
+      setState(() {
+        loading = false;
+      });
+    }
+  }
+
+  void showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -61,88 +131,336 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F8FF),
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              children: [
-                const Icon(Icons.school, size: 80, color: Colors.indigo),
-                const SizedBox(height: 15),
-                const Text(
-                  'SR STUDIES',
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 44,
+            vertical: 70,
+          ),
+          child: Column(
+            children: [
+              const Icon(
+                Icons.school,
+                size: 110,
+                color: Color(0xFF4054B8),
+              ),
+
+              const SizedBox(height: 20),
+
+              const Text(
+                'SR STUDIES',
+                style: TextStyle(
+                  fontSize: 42,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              const Text(
+                'Learn • Practice • Succeed',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey,
+                ),
+              ),
+
+              const SizedBox(height: 70),
+
+              TextField(
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.email_outlined),
+                  hintText: 'Email',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              TextField(
+                controller: passwordController,
+                obscureText: hidePassword,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  hintText: 'Password',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        hidePassword = !hidePassword;
+                      });
+                    },
+                    icon: Icon(
+                      hidePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 35),
+
+              SizedBox(
+                width: double.infinity,
+                height: 65,
+                child: ElevatedButton(
+                  onPressed: loading ? null : login,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF5663A5),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(35),
+                    ),
+                  ),
+                  child: loading
+                      ? const CircularProgressIndicator(
+                          color: Colors.white,
+                        )
+                      : const Text(
+                          'LOGIN',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                ),
+              ),
+
+              const SizedBox(height: 35),
+
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SignupScreen(),
+                    ),
+                  );
+                },
+                child: const Text(
+                  'Create New Account',
                   style: TextStyle(
-                    fontSize: 32,
+                    fontSize: 21,
                     fontWeight: FontWeight.bold,
+                    color: Color(0xFF4F5D99),
                   ),
                 ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Learn • Practice • Succeed',
-                  style: TextStyle(color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ================= SIGNUP =================
+
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
+
+  @override
+  State<SignupScreen> createState() => _SignupScreenState();
+}
+
+class _SignupScreenState extends State<SignupScreen> {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+
+  bool loading = false;
+  bool hidePassword = true;
+
+  Future<void> signup() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+    final confirmPassword = confirmPasswordController.text.trim();
+
+    if (email.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty) {
+      showMessage('सभी fields भरें');
+      return;
+    }
+
+    if (password.length < 6) {
+      showMessage('Password कम से कम 6 characters का होना चाहिए');
+      return;
+    }
+
+    if (password != confirmPassword) {
+      showMessage('दोनों Password समान नहीं हैं');
+      return;
+    }
+
+    setState(() {
+      loading = true;
+    });
+
+    try {
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account successfully बन गया!'),
+          ),
+        );
+
+        Navigator.pop(context);
+      }
+    } on FirebaseAuthException catch (e) {
+      String message = 'Account नहीं बन पाया';
+
+      if (e.code == 'email-already-in-use') {
+        message = 'इस Email से account पहले से बना हुआ है';
+      } else if (e.code == 'invalid-email') {
+        message = 'Email सही नहीं है';
+      } else if (e.code == 'weak-password') {
+        message = 'Password बहुत कमजोर है';
+      }
+
+      showMessage(message);
+    } catch (e) {
+      showMessage('कुछ गलत हुआ। फिर कोशिश करें।');
+    }
+
+    if (mounted) {
+      setState(() {
+        loading = false;
+      });
+    }
+  }
+
+  void showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Create Account'),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(30),
+          child: Column(
+            children: [
+              const SizedBox(height: 30),
+
+              const Icon(
+                Icons.person_add,
+                size: 90,
+                color: Color(0xFF4054B8),
+              ),
+
+              const SizedBox(height: 25),
+
+              const Text(
+                'Create New Account',
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(height: 40),
-                TextField(
-                  controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: const Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
+              ),
+
+              const SizedBox(height: 40),
+
+              TextField(
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.email_outlined),
+                  labelText: 'Email',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              TextField(
+                controller: passwordController,
+                obscureText: hidePassword,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  labelText: 'Password',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        hidePassword = !hidePassword;
+                      });
+                    },
+                    icon: Icon(
+                      hidePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: passwordController,
-                  obscureText: hidePassword,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        hidePassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                      ),
-                      onPressed: () {
-                        setState(() => hidePassword = !hidePassword);
-                      },
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
+              ),
+
+              const SizedBox(height: 20),
+
+              TextField(
+                controller: confirmPasswordController,
+                obscureText: hidePassword,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  labelText: 'Confirm Password',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: FilledButton(
-                    onPressed: login,
-                    child: const Text(
-                      'LOGIN',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+              ),
+
+              const SizedBox(height: 35),
+
+              SizedBox(
+                width: double.infinity,
+                height: 60,
+                child: ElevatedButton(
+                  onPressed: loading ? null : signup,
+                  child: loading
+                      ? const CircularProgressIndicator()
+                      : const Text(
+                          'CREATE ACCOUNT',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
-                const SizedBox(height: 15),
-                TextButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Signup will be connected next.'),
-                      ),
-                    );
-                  },
-                  child: const Text('Create New Account'),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -152,662 +470,71 @@ class _LoginPageState extends State<LoginPage> {
 
 // ================= HOME =================
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
 
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  int selectedIndex = 0;
-
-  final pages = const [
-    HomeTab(),
-    CoursesTab(),
-    TestsTab(),
-    NotesTab(),
-    ProfileTab(),
-  ];
+  Future<void> logout() async {
+    await FirebaseAuth.instance.signOut();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
-      body: pages[selectedIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() => selectedIndex = index);
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.menu_book_outlined),
-            selectedIcon: Icon(Icons.menu_book),
-            label: 'Courses',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.quiz_outlined),
-            selectedIcon: Icon(Icons.quiz),
-            label: 'Tests',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.description_outlined),
-            selectedIcon: Icon(Icons.description),
-            label: 'Notes',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
+      appBar: AppBar(
+        title: const Text('SR STUDIES'),
+        actions: [
+          IconButton(
+            onPressed: logout,
+            icon: const Icon(Icons.logout),
           ),
         ],
       ),
-    );
-  }
-}
-
-// ================= HOME TAB =================
-
-class HomeTab extends StatelessWidget {
-  const HomeTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Welcome to SR STUDIES 👋',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Kumar ranjan official.',
-              style: TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 24),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(22),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF3949AB), Color(0xFF5C6BC0)],
-                ),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.school, color: Colors.white, size: 45),
-                  SizedBox(height: 12),
-                  Text(
-                    'Study Smarter',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 6),
-                  Text(
-                    'Courses • Classes • Notes • Tests',
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 28),
-            const Text(
-              'Quick Access',
-              style: TextStyle(
-                fontSize: 21,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 15),
-            const Row(
-              children: [
-                Expanded(
-                  child: QuickCard(
-                    icon: Icons.menu_book,
-                    title: 'Courses',
-                  ),
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: QuickCard(
-                    icon: Icons.quiz,
-                    title: 'Tests',
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Row(
-              children: [
-                Expanded(
-                  child: QuickCard(
-                    icon: Icons.picture_as_pdf,
-                    title: 'Notes',
-                  ),
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: QuickCard(
-                    icon: Icons.emoji_events,
-                    title: 'Results',
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class QuickCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-
-  const QuickCard({
-    super.key,
-    required this.icon,
-    required this.title,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 22),
-        child: Column(
-          children: [
-            Icon(icon, size: 34, color: Colors.indigo),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ================= COURSE DATA =================
-
-class Course {
-  final String title;
-  final String description;
-  final IconData icon;
-  final Color iconColor;
-  final List<String> chapters;
-
-  const Course({
-    required this.title,
-    required this.description,
-    required this.icon,
-    required this.iconColor,
-    required this.chapters,
-  });
-}
-
-const biologyCourse = Course(
-  title: 'Biology Foundation',
-  description: 'Build strong Biology fundamentals.',
-  icon: Icons.biotech,
-  iconColor: Colors.green,
-  chapters: [
-    'Biology Basics',
-    'Cell',
-    'Genetics',
-    'Plant Biology',
-    'Human Biology',
-  ],
-);
-
-const economicsCourse = Course(
-  title: 'Economics Foundation',
-  description: 'Understand the basic concepts of Economics.',
-  icon: Icons.trending_up,
-  iconColor: Colors.orange,
-  chapters: [
-    'Introduction to Economics',
-    'Demand & Supply',
-    'Production',
-    'Market',
-    'Money & Banking',
-  ],
-);
-
-const historyCourse = Course(
-  title: 'History Foundation',
-  description: 'Build a strong foundation in History.',
-  icon: Icons.account_balance,
-  iconColor: Colors.brown,
-  chapters: [
-    'Introduction to History',
-    'Ancient India',
-    'Medieval India',
-    'Modern India',
-    'Indian Freedom Movement',
-  ],
-);
-
-// ================= COURSES TAB =================
-
-class CoursesTab extends StatelessWidget {
-  const CoursesTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final courses = [
-      biologyCourse,
-      economicsCourse,
-      historyCourse,
-    ];
-
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '📚 Courses',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Choose your foundation course',
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 25),
-            ...courses.map(
-              (course) => Padding(
-                padding: const EdgeInsets.only(bottom: 15),
-                child: CourseCard(course: course),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class CourseCard extends StatelessWidget {
-  final Course course;
-
-  const CourseCard({
-    super.key,
-    required this.course,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => CourseChaptersPage(course: course),
-            ),
-          );
-        },
+      body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Row(
+          padding: const EdgeInsets.all(25),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor:
-                    course.iconColor.withValues(alpha: 0.12),
-                child: Icon(
-                  course.icon,
-                  color: course.iconColor,
-                  size: 30,
+              const Icon(
+                Icons.school,
+                size: 100,
+                color: Color(0xFF4054B8),
+              ),
+
+              const SizedBox(height: 25),
+
+              const Text(
+                'Welcome to SR STUDIES',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      course.title,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      course.description,
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                  ],
+
+              const SizedBox(height: 15),
+
+              Text(
+                user?.email ?? '',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 17,
+                  color: Colors.grey,
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios, size: 18),
+
+              const SizedBox(height: 40),
+
+              const Text(
+                'Courses और Chapters यहाँ आएँगे।',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 19),
+              ),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-// ================= CHAPTERS =================
-
-class CourseChaptersPage extends StatelessWidget {
-  final Course course;
-
-  const CourseChaptersPage({
-    super.key,
-    required this.course,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(course.title),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          CircleAvatar(
-            radius: 40,
-            child: Icon(course.icon, size: 42),
-          ),
-          const SizedBox(height: 15),
-          Text(
-            course.title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 25,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            course.description,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.grey),
-          ),
-          const SizedBox(height: 25),
-          const Text(
-            'Chapters',
-            style: TextStyle(
-              fontSize: 21,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          ...List.generate(
-            course.chapters.length,
-            (index) {
-              final chapterNumber = index + 1;
-              final chapterName = course.chapters[index];
-
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    child: Text('$chapterNumber'),
-                  ),
-                  title: Text(
-                    'Chapter $chapterNumber',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  subtitle: Text(chapterName),
-                  trailing: const Icon(
-                    Icons.arrow_forward_ios,
-                    size: 17,
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ChapterPage(
-                          courseName: course.title,
-                          chapterNumber: chapterNumber,
-                          chapterName: chapterName,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ================= CHAPTER PAGE =================
-
-class ChapterPage extends StatelessWidget {
-  final String courseName;
-  final int chapterNumber;
-  final String chapterName;
-
-  const ChapterPage({
-    super.key,
-    required this.courseName,
-    required this.chapterNumber,
-    required this.chapterName,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Chapter $chapterNumber'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const Icon(
-              Icons.menu_book,
-              size: 70,
-              color: Colors.indigo,
-            ),
-            const SizedBox(height: 15),
-            Text(
-              chapterName,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 27,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              courseName,
-              style: const TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 30),
-
-            ChapterOption(
-              icon: Icons.play_circle_fill,
-              title: 'Video Class',
-              subtitle: 'Video lecture will be added here',
-              onTap: () {
-                showComingSoon(context, 'Video Class');
-              },
-            ),
-
-            ChapterOption(
-              icon: Icons.picture_as_pdf,
-              title: 'Notes / PDF',
-              subtitle: 'Chapter notes will be added here',
-              onTap: () {
-                showComingSoon(context, 'Notes / PDF');
-              },
-            ),
-
-            ChapterOption(
-              icon: Icons.quiz,
-              title: 'Chapter Test',
-              subtitle: 'Test will be added here',
-              onTap: () {
-                showComingSoon(context, 'Chapter Test');
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class ChapterOption extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  const ChapterOption({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 14),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(12),
-        leading: CircleAvatar(
-          radius: 27,
-          child: Icon(icon),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 17,
-          ),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 5),
-          child: Text(subtitle),
-        ),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 17),
-        onTap: onTap,
-      ),
-    );
-  }
-}
-
-void showComingSoon(BuildContext context, String feature) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text('$feature will be added next.'),
-    ),
-  );
-}
-
-// ================= OTHER TABS =================
-
-class TestsTab extends StatelessWidget {
-  const TestsTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        '📝 Tests\n\nTests will appear here.',
-        textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 20),
-      ),
-    );
-  }
-}
-
-class NotesTab extends StatelessWidget {
-  const NotesTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        '📄 Notes\n\nStudy notes will appear here.',
-        textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 20),
-      ),
-    );
-  }
-}
-
-class ProfileTab extends StatelessWidget {
-  const ProfileTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const CircleAvatar(
-            radius: 45,
-            child: Icon(Icons.person, size: 50),
-          ),
-          const SizedBox(height: 15),
-          const Text(
-            'My Profile',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 20),
-          OutlinedButton.icon(
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const LoginPage(),
-                ),
-              );
-            },
-            icon: const Icon(Icons.logout),
-            label: const Text('Logout'),
-          ),
-        ],
       ),
     );
   }
