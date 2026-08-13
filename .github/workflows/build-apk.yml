@@ -42,6 +42,11 @@ jobs:
           sed -i "s/com.example.sr_studies/$PACKAGE_NAME/g" android/app/build.gradle.kts
           sed -i "s/com.example.sr_studies/$PACKAGE_NAME/g" android/app/src/main/AndroidManifest.xml 2>/dev/null || true
 
+      - name: Set App Name
+        run: |
+          sed -i 's/android:label="[^"]*"/android:label="SR STUDIES"/' android/app/src/main/AndroidManifest.xml
+          echo "App name set to SR STUDIES"
+
       - name: Configure Google Services Plugin
         run: |
           sed -i '/dev.flutter.flutter-plugin-loader/a\    id("com.google.gms.google-services") version "4.4.2" apply false' android/settings.gradle.kts
