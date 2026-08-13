@@ -20,8 +20,8 @@ jobs:
           flutter-version: '3.35.0'
           channel: stable
 
-      - name: Create Flutter Project
-  run: flutter create --platforms=android .
+      - name: Create Android Project
+        run: flutter create --platforms=android --project-name=sr_studies .
 
       - name: Get Dependencies
         run: flutter pub get
