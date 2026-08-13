@@ -1,8 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp();
@@ -20,14 +20,16 @@ class SRStudiesApp extends StatelessWidget {
       title: 'SR STUDIES',
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF4B59B8),
-        ),
+        fontFamily: 'Arial',
       ),
       home: const AuthGate(),
     );
   }
 }
+
+// --------------------------------------------------
+// AUTH GATE
+// --------------------------------------------------
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
@@ -55,7 +57,9 @@ class AuthGate extends StatelessWidget {
   }
 }
 
-// ================= LOGIN =================
+// --------------------------------------------------
+// LOGIN SCREEN
+// --------------------------------------------------
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -69,7 +73,14 @@ class _LoginScreenState extends State<LoginScreen> {
   final passwordController = TextEditingController();
 
   bool loading = false;
-  bool hidePassword = true;
+  bool obscurePassword = true;
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   Future<void> login() async {
     final email = emailController.text.trim();
@@ -90,70 +101,73 @@ class _LoginScreenState extends State<LoginScreen> {
         password: password,
       );
     } on FirebaseAuthException catch (e) {
-      String message = 'Login failed';
-
-      if (e.code == 'user-not-found') {
-        message = 'यह account मौजूद नहीं है';
-      } else if (e.code == 'wrong-password' ||
-          e.code == 'invalid-credential') {
-        message = 'Email या Password गलत है';
-      } else if (e.code == 'invalid-email') {
-        message = 'Email सही नहीं है';
-      } else if (e.code == 'too-many-requests') {
-        message = 'बहुत ज्यादा attempts हुए हैं। थोड़ी देर बाद कोशिश करें।';
-      }
-
-      showMessage(message);
+      showMessage(getAuthError(e.code));
     } catch (e) {
-      showMessage('कुछ गलत हुआ। फिर कोशिश करें।');
+      showMessage('Login में समस्या हुई');
+    } finally {
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
     }
+  }
 
-    if (mounted) {
-      setState(() {
-        loading = false;
-      });
+  String getAuthError(String code) {
+    switch (code) {
+      case 'invalid-email':
+        return 'Email सही नहीं है';
+      case 'user-not-found':
+        return 'यह Email registered नहीं है';
+      case 'wrong-password':
+      case 'invalid-credential':
+        return 'Email या Password गलत है';
+      case 'user-disabled':
+        return 'यह account बंद कर दिया गया है';
+      case 'too-many-requests':
+        return 'बहुत ज्यादा attempts हुए हैं, थोड़ी देर बाद कोशिश करें';
+      default:
+        return 'Login failed: $code';
     }
   }
 
   void showMessage(String message) {
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
   }
 
   @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F8FF),
+      backgroundColor: const Color(0xffF8F9FF),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
             horizontal: 44,
-            vertical: 70,
+            vertical: 55,
           ),
           child: Column(
             children: [
+              const SizedBox(height: 25),
+
+              // Logo
               const Icon(
                 Icons.school,
-                size: 110,
-                color: Color(0xFF4054B8),
+                size: 105,
+                color: Color(0xff3F51B5),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 25),
 
               const Text(
                 'SR STUDIES',
                 style: TextStyle(
-                  fontSize: 42,
+                  fontSize: 43,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Color(0xff15151D),
                 ),
               ),
 
@@ -162,64 +176,73 @@ class _LoginScreenState extends State<LoginScreen> {
               const Text(
                 'Learn • Practice • Succeed',
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: 24,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey,
+                  color: Color(0xffAAAAAA),
                 ),
               ),
 
-              const SizedBox(height: 70),
+              const SizedBox(height: 75),
 
+              // Email
               TextField(
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.email_outlined),
                   hintText: 'Email',
+                  prefixIcon: const Icon(Icons.email_outlined),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(25),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 22,
                   ),
                 ),
               ),
 
-              const SizedBox(height: 25),
+              const SizedBox(height: 30),
 
+              // Password
               TextField(
                 controller: passwordController,
-                obscureText: hidePassword,
+                obscureText: obscurePassword,
                 decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.lock_outline),
                   hintText: 'Password',
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      obscurePassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        obscurePassword = !obscurePassword;
+                      });
+                    },
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(25),
                   ),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        hidePassword = !hidePassword;
-                      });
-                    },
-                    icon: Icon(
-                      hidePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 22,
                   ),
                 ),
               ),
 
               const SizedBox(height: 35),
 
+              // Login button
               SizedBox(
                 width: double.infinity,
-                height: 65,
+                height: 70,
                 child: ElevatedButton(
                   onPressed: loading ? null : login,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF5663A5),
+                    backgroundColor: const Color(0xff5963A5),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(35),
+                      borderRadius: BorderRadius.circular(40),
                     ),
                   ),
                   child: loading
@@ -229,15 +252,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       : const Text(
                           'LOGIN',
                           style: TextStyle(
-                            fontSize: 22,
+                            fontSize: 25,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                 ),
               ),
 
-              const SizedBox(height: 35),
+              const SizedBox(height: 40),
 
+              // Create account
               TextButton(
                 onPressed: () {
                   Navigator.push(
@@ -250,9 +274,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: const Text(
                   'Create New Account',
                   style: TextStyle(
-                    fontSize: 21,
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF4F5D99),
+                    color: Color(0xff53619B),
                   ),
                 ),
               ),
@@ -264,7 +288,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-// ================= SIGNUP =================
+// --------------------------------------------------
+// SIGNUP SCREEN
+// --------------------------------------------------
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -276,30 +302,28 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
 
   bool loading = false;
-  bool hidePassword = true;
+  bool obscurePassword = true;
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   Future<void> signup() async {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
-    final confirmPassword = confirmPasswordController.text.trim();
 
-    if (email.isEmpty ||
-        password.isEmpty ||
-        confirmPassword.isEmpty) {
-      showMessage('सभी fields भरें');
+    if (email.isEmpty || password.isEmpty) {
+      showMessage('Email और Password भरें');
       return;
     }
 
     if (password.length < 6) {
       showMessage('Password कम से कम 6 characters का होना चाहिए');
-      return;
-    }
-
-    if (password != confirmPassword) {
-      showMessage('दोनों Password समान नहीं हैं');
       return;
     }
 
@@ -313,131 +337,129 @@ class _SignupScreenState extends State<SignupScreen> {
         password: password,
       );
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Account successfully बन गया!'),
-          ),
-        );
+      if (!mounted) return;
 
-        Navigator.pop(context);
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account successfully created!'),
+        ),
+      );
+
+      Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
-      String message = 'Account नहीं बन पाया';
-
-      if (e.code == 'email-already-in-use') {
-        message = 'इस Email से account पहले से बना हुआ है';
-      } else if (e.code == 'invalid-email') {
-        message = 'Email सही नहीं है';
-      } else if (e.code == 'weak-password') {
-        message = 'Password बहुत कमजोर है';
-      }
-
-      showMessage(message);
+      showMessage(getAuthError(e.code));
     } catch (e) {
-      showMessage('कुछ गलत हुआ। फिर कोशिश करें।');
+      showMessage('Account बनाने में समस्या हुई');
+    } finally {
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
     }
+  }
 
-    if (mounted) {
-      setState(() {
-        loading = false;
-      });
+  String getAuthError(String code) {
+    switch (code) {
+      case 'email-already-in-use':
+        return 'यह Email पहले से registered है';
+      case 'invalid-email':
+        return 'Email सही नहीं है';
+      case 'weak-password':
+        return 'Password बहुत कमजोर है';
+      case 'operation-not-allowed':
+        return 'Email/Password login Firebase में enable नहीं है';
+      default:
+        return 'Signup failed: $code';
     }
   }
 
   void showMessage(String message) {
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
   }
 
   @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xffF8F9FF),
       appBar: AppBar(
-        title: const Text('Create Account'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(30),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 44,
+            vertical: 20,
+          ),
           child: Column(
             children: [
-              const SizedBox(height: 30),
-
               const Icon(
-                Icons.person_add,
+                Icons.school,
                 size: 90,
-                color: Color(0xFF4054B8),
+                color: Color(0xff3F51B5),
               ),
 
-              const SizedBox(height: 25),
+              const SizedBox(height: 20),
 
               const Text(
-                'Create New Account',
+                'Create Account',
                 style: TextStyle(
-                  fontSize: 30,
+                  fontSize: 34,
                   fontWeight: FontWeight.bold,
                 ),
               ),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 50),
 
               TextField(
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
+                  hintText: 'Email',
                   prefixIcon: const Icon(Icons.email_outlined),
-                  labelText: 'Email',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 22,
                   ),
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 25),
 
               TextField(
                 controller: passwordController,
-                obscureText: hidePassword,
+                obscureText: obscurePassword,
                 decoration: InputDecoration(
+                  hintText: 'Password',
                   prefixIcon: const Icon(Icons.lock_outline),
-                  labelText: 'Password',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
                   suffixIcon: IconButton(
+                    icon: Icon(
+                      obscurePassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                    ),
                     onPressed: () {
                       setState(() {
-                        hidePassword = !hidePassword;
+                        obscurePassword = !obscurePassword;
                       });
                     },
-                    icon: Icon(
-                      hidePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
                   ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              TextField(
-                controller: confirmPasswordController,
-                obscureText: hidePassword,
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  labelText: 'Confirm Password',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 22,
                   ),
                 ),
               ),
@@ -446,15 +468,24 @@ class _SignupScreenState extends State<SignupScreen> {
 
               SizedBox(
                 width: double.infinity,
-                height: 60,
+                height: 70,
                 child: ElevatedButton(
                   onPressed: loading ? null : signup,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff5963A5),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(40),
+                    ),
+                  ),
                   child: loading
-                      ? const CircularProgressIndicator()
+                      ? const CircularProgressIndicator(
+                          color: Colors.white,
+                        )
                       : const Text(
                           'CREATE ACCOUNT',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -468,7 +499,9 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 }
 
-// ================= HOME =================
+// --------------------------------------------------
+// HOME SCREEN
+// --------------------------------------------------
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -479,11 +512,14 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    final User? user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SR STUDIES'),
+        title: const Text(
+          'SR STUDIES',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         actions: [
           IconButton(
             onPressed: logout,
@@ -492,48 +528,45 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(25),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.school,
-                size: 100,
-                color: Color(0xFF4054B8),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.school,
+              size: 90,
+              color: Color(0xff3F51B5),
+            ),
+
+            const SizedBox(height: 25),
+
+            const Text(
+              'Welcome to SR STUDIES',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
               ),
+              textAlign: TextAlign.center,
+            ),
 
-              const SizedBox(height: 25),
+            const SizedBox(height: 15),
 
-              const Text(
-                'Welcome to SR STUDIES',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
+            Text(
+              user?.email ?? '',
+              style: const TextStyle(
+                fontSize: 17,
               ),
+            ),
 
-              const SizedBox(height: 15),
+            const SizedBox(height: 40),
 
-              Text(
-                user?.email ?? '',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 17,
-                  color: Colors.grey,
-                ),
+            const Text(
+              'Learn • Practice • Succeed',
+              style: TextStyle(
+                fontSize: 20,
+                color: Colors.grey,
               ),
-
-              const SizedBox(height: 40),
-
-              const Text(
-                'Courses और Chapters यहाँ आएँगे।',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 19),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
