@@ -22,7 +22,7 @@ class SRStudiesApp extends StatelessWidget {
   }
 }
 
-// ---------------- LOGIN ----------------
+// ================= LOGIN =================
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -34,7 +34,6 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-
   bool hidePassword = true;
 
   void login() {
@@ -77,9 +76,7 @@ class _LoginPageState extends State<LoginPage> {
                   size: 80,
                   color: Colors.indigo,
                 ),
-
                 const SizedBox(height: 15),
-
                 const Text(
                   'SR STUDIES',
                   style: TextStyle(
@@ -87,16 +84,11 @@ class _LoginPageState extends State<LoginPage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-
                 const SizedBox(height: 6),
-
                 const Text(
                   'Learn • Practice • Succeed',
-                  style: TextStyle(
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(color: Colors.grey),
                 ),
-
                 const SizedBox(height: 40),
 
                 TextField(
@@ -154,21 +146,19 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 15),
 
                 TextButton(
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text(
-                          'Signup will be added with Firebase.',
+                          'Real signup will be connected with Firebase next.',
                         ),
                       ),
                     );
                   },
-                  child: const Text(
-                    'Create New Account',
-                  ),
+                  child: const Text('Create New Account'),
                 ),
               ],
             ),
@@ -179,7 +169,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-// ---------------- HOME ----------------
+// ================= HOME =================
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -242,7 +232,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// ---------------- HOME TAB ----------------
+// ================= HOME TAB =================
 
 class HomeTab extends StatelessWidget {
   const HomeTab({super.key});
@@ -262,16 +252,11 @@ class HomeTab extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 6),
-
             const Text(
               'Your learning journey starts here.',
-              style: TextStyle(
-                color: Colors.grey,
-              ),
+              style: TextStyle(color: Colors.grey),
             ),
-
             const SizedBox(height: 24),
 
             Container(
@@ -406,22 +391,293 @@ class QuickCard extends StatelessWidget {
   }
 }
 
-// ---------------- OTHER TABS ----------------
+// ================= COURSES =================
 
 class CoursesTab extends StatelessWidget {
   const CoursesTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        '📚 Courses\n\nCourses will appear here.',
-        textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 20),
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '📚 Courses',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            const Text(
+              'Choose your foundation course',
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 16,
+              ),
+            ),
+
+            const SizedBox(height: 25),
+
+            CourseCard(
+              icon: Icons.biotech,
+              title: 'Biology Foundation',
+              subtitle: 'Build strong Biology fundamentals',
+              iconColor: Colors.green,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const CourseDetailsPage(
+                      title: 'Biology Foundation',
+                      icon: Icons.biotech,
+                      description:
+                          'Learn the fundamental concepts of Biology.',
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            const SizedBox(height: 15),
+
+            CourseCard(
+              icon: Icons.trending_up,
+              title: 'Economics Foundation',
+              subtitle: 'Understand the basics of Economics',
+              iconColor: Colors.orange,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const CourseDetailsPage(
+                      title: 'Economics Foundation',
+                      icon: Icons.trending_up,
+                      description:
+                          'Learn the basic concepts of Economics.',
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            const SizedBox(height: 15),
+
+            CourseCard(
+              icon: Icons.account_balance,
+              title: 'History Foundation',
+              subtitle: 'Build a strong foundation in History',
+              iconColor: Colors.brown,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const CourseDetailsPage(
+                      title: 'History Foundation',
+                      icon: Icons.account_balance,
+                      description:
+                          'Learn important historical concepts and events.',
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
 }
+
+class CourseCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color iconColor;
+  final VoidCallback onTap;
+
+  const CourseCard({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.iconColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 30,
+                backgroundColor: iconColor.withValues(alpha: 0.12),
+                child: Icon(
+                  icon,
+                  color: iconColor,
+                  size: 30,
+                ),
+              ),
+
+              const SizedBox(width: 16),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const Icon(Icons.arrow_forward_ios, size: 18),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ================= COURSE DETAILS =================
+
+class CourseDetailsPage extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final String description;
+
+  const CourseDetailsPage({
+    super.key,
+    required this.title,
+    required this.icon,
+    required this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 45,
+              child: Icon(
+                icon,
+                size: 48,
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            Text(
+              description,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontSize: 16,
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
+            const CourseOption(
+              icon: Icons.play_circle_outline,
+              title: 'Video Classes',
+              subtitle: 'Classes will be added here',
+            ),
+
+            const CourseOption(
+              icon: Icons.picture_as_pdf,
+              title: 'Notes / PDF',
+              subtitle: 'Study material will be added here',
+            ),
+
+            const CourseOption(
+              icon: Icons.quiz_outlined,
+              title: 'Course Test',
+              subtitle: 'Tests will be added here',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CourseOption extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  const CourseOption({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: CircleAvatar(
+          child: Icon(icon),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      ),
+    );
+  }
+}
+
+// ================= OTHER TABS =================
 
 class TestsTab extends StatelessWidget {
   const TestsTab({super.key});
