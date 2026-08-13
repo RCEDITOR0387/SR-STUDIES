@@ -233,7 +233,7 @@ class HomeTab extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             const Text(
-              'Your learning journey starts here.',
+              'Kumar ranjan official.',
               style: TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 24),
