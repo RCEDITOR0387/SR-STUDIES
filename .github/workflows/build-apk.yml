@@ -23,10 +23,30 @@ jobs:
       - name: Create Android Project
         run: flutter create --platforms=android --project-name=sr_studies .
 
-      - name: Restore Firebase Config
+      - name: Check Firebase Config
         run: |
-          test -f android/app/google-services.json
-          echo "Firebase config found"
+          if [ ! -f android/app/google-services.json ]; then
+            echo "ERROR: google-services.json not found!"
+            exit 1
+          fi
+          echo "Firebase config found."
+
+      - name: Read Firebase Package Name
+        run: |
+          PACKAGE_NAME=$(python3 -c "import json; print(json.load(open('android/app/google-services.json'))['client'][0]['client_info']['android_client_info']['package_name'])")
+          echo "Firebase package: $PACKAGE_NAME"
+          echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
+
+      - name: Configure Android Package
+        run: |
+          sed -i "s/com.example.sr_studies/$PACKAGE_NAME/g" android/app/build.gradle.kts
+          sed -i "s/com.example.sr_studies/$PACKAGE_NAME/g" android/app/src/main/AndroidManifest.xml 2>/dev/null || true
+
+      - name: Configure Google Services Plugin
+        run: |
+          sed -i '/dev.flutter.flutter-plugin-loader/a\    id("com.google.gms.google-services") version "4.4.2" apply false' android/settings.gradle.kts
+
+          sed -i '/id("dev.flutter.flutter-gradle-plugin")/a\    id("com.google.gms.google-services")' android/app/build.gradle.kts
 
       - name: Get Dependencies
         run: flutter pub get
