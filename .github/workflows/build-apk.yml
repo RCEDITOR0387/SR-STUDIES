@@ -21,10 +21,7 @@ jobs:
           channel: stable
 
       - name: Create Flutter Project
-        run: |
-          if [ ! -f pubspec.yaml ]; then
-            flutter create --project-name sr_studies .
-          fi
+  run: flutter create --platforms=android .
 
       - name: Get Dependencies
         run: flutter pub get
