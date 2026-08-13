@@ -27,11 +27,11 @@ class SRStudiesApp extends StatelessWidget {
       title: 'SR STUDIES',
       theme: ThemeData(
         useMaterial3: true,
+        fontFamily: 'Arial',
         scaffoldBackgroundColor: const Color(0xffF8F9FF),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xff4055C5),
+          seedColor: const Color(0xff4054C4),
         ),
-        fontFamily: 'Arial',
       ),
       home: const AuthGate(),
     );
@@ -66,10 +66,10 @@ class FirebaseErrorApp extends StatelessWidget {
                   children: [
                     const Icon(
                       Icons.error_outline,
-                      size: 90,
+                      size: 85,
                       color: Colors.red,
                     ),
-                    const SizedBox(height: 25),
+                    const SizedBox(height: 20),
                     const Text(
                       'Firebase Error',
                       style: TextStyle(
@@ -82,7 +82,7 @@ class FirebaseErrorApp extends StatelessWidget {
                       error,
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 25),
+                    const SizedBox(height: 20),
                     const Text(
                       'google-services.json और Firebase configuration check करें.',
                       textAlign: TextAlign.center,
@@ -120,7 +120,7 @@ class AuthGate extends StatelessWidget {
         }
 
         if (snapshot.hasData) {
-          return const MainNavigation();
+          return const MainShell();
         }
 
         return const LoginScreen();
@@ -163,7 +163,9 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    setState(() => loading = true);
+    setState(() {
+      loading = true;
+    });
 
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -172,12 +174,14 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } on FirebaseAuthException catch (e) {
       showMessage(getAuthError(e.code));
-    } catch (_) {
+    } catch (e) {
       showMessage('Login में समस्या हुई');
-    } finally {
-      if (mounted) {
-        setState(() => loading = false);
-      }
+    }
+
+    if (mounted) {
+      setState(() {
+        loading = false;
+      });
     }
   }
 
@@ -215,16 +219,14 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
             horizontal: 35,
-            vertical: 50,
+            vertical: 55,
           ),
           child: Column(
             children: [
-              const SizedBox(height: 20),
-
               const Icon(
                 Icons.school,
                 size: 100,
-                color: Color(0xff4055C5),
+                color: Color(0xff4054C4),
               ),
 
               const SizedBox(height: 20),
@@ -242,39 +244,43 @@ class _LoginScreenState extends State<LoginScreen> {
               const Text(
                 'Learn • Practice • Succeed',
                 style: TextStyle(
-                  fontSize: 21,
-                  color: Colors.grey,
+                  fontSize: 22,
                   fontWeight: FontWeight.w600,
+                  color: Colors.grey,
                 ),
               ),
 
-              const SizedBox(height: 70),
+              const SizedBox(height: 65),
 
               TextField(
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
-                  labelText: 'Email',
+                  hintText: 'Email',
                   prefixIcon: const Icon(Icons.email_outlined),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(25),
                   ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 21,
+                    horizontal: 20,
+                  ),
                 ),
               ),
 
-              const SizedBox(height: 22),
+              const SizedBox(height: 25),
 
               TextField(
                 controller: passwordController,
                 obscureText: obscurePassword,
                 decoration: InputDecoration(
-                  labelText: 'Password',
+                  hintText: 'Password',
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
                     icon: Icon(
                       obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
                     ),
                     onPressed: () {
                       setState(() {
@@ -284,6 +290,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(25),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 21,
+                    horizontal: 20,
                   ),
                 ),
               ),
@@ -296,7 +306,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ElevatedButton(
                   onPressed: loading ? null : login,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xff4055C5),
+                    backgroundColor: const Color(0xff5364C4),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(35),
@@ -309,7 +319,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       : const Text(
                           'LOGIN',
                           style: TextStyle(
-                            fontSize: 21,
+                            fontSize: 23,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -330,8 +340,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: const Text(
                   'Create New Account',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 19,
                     fontWeight: FontWeight.bold,
+                    color: Color(0xff5364C4),
                   ),
                 ),
               ),
@@ -376,12 +387,12 @@ class _SignupScreenState extends State<SignupScreen> {
     final password = passwordController.text.trim();
 
     if (name.isEmpty) {
-      showMessage('अपना Name लिखें');
+      showMessage('अपना Name भरें');
       return;
     }
 
     if (email.isEmpty) {
-      showMessage('Email लिखें');
+      showMessage('Email भरें');
       return;
     }
 
@@ -392,11 +403,13 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    setState(() => loading = true);
+    setState(() {
+      loading = true;
+    });
 
     try {
-      final credential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
+      final credential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -406,17 +419,22 @@ class _SignupScreenState extends State<SignupScreen> {
 
       if (!mounted) return;
 
-      showMessage('Account successfully created!');
-
-      Navigator.pop(context);
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => const MainShell(),
+        ),
+        (route) => false,
+      );
     } on FirebaseAuthException catch (e) {
       showMessage(getAuthError(e.code));
     } catch (e) {
       showMessage('Account बनाने में समस्या हुई');
-    } finally {
-      if (mounted) {
-        setState(() => loading = false);
-      }
+    }
+
+    if (mounted) {
+      setState(() {
+        loading = false;
+      });
     }
   }
 
@@ -450,19 +468,23 @@ class _SignupScreenState extends State<SignupScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
             horizontal: 35,
-            vertical: 20,
+            vertical: 10,
           ),
           child: Column(
             children: [
               const Icon(
                 Icons.school,
-                size: 90,
-                color: Color(0xff4055C5),
+                size: 85,
+                color: Color(0xff4054C4),
               ),
 
               const SizedBox(height: 15),
@@ -477,52 +499,62 @@ class _SignupScreenState extends State<SignupScreen> {
 
               const SizedBox(height: 40),
 
+              // NAME
               TextField(
                 controller: nameController,
                 textCapitalization: TextCapitalization.words,
                 decoration: InputDecoration(
-                  labelText: 'Student Name',
-                  hintText: 'अपना नाम लिखें',
+                  hintText: 'Student Name',
                   prefixIcon: const Icon(
                     Icons.person_outline,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(25),
                   ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 21,
+                    horizontal: 20,
+                  ),
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 22),
 
+              // EMAIL
               TextField(
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
-                  labelText: 'Email',
+                  hintText: 'Email',
                   prefixIcon: const Icon(
                     Icons.email_outlined,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(25),
                   ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 21,
+                    horizontal: 20,
+                  ),
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 22),
 
+              // PASSWORD
               TextField(
                 controller: passwordController,
                 obscureText: obscurePassword,
                 decoration: InputDecoration(
-                  labelText: 'Password',
+                  hintText: 'Password',
                   prefixIcon: const Icon(
                     Icons.lock_outline,
                   ),
                   suffixIcon: IconButton(
                     icon: Icon(
                       obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
                     ),
                     onPressed: () {
                       setState(() {
@@ -532,6 +564,10 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(25),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 21,
+                    horizontal: 20,
                   ),
                 ),
               ),
@@ -544,7 +580,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 child: ElevatedButton(
                   onPressed: loading ? null : signup,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xff4055C5),
+                    backgroundColor: const Color(0xff5364C4),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(35),
@@ -557,7 +593,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       : const Text(
                           'CREATE ACCOUNT',
                           style: TextStyle(
-                            fontSize: 19,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -572,40 +608,46 @@ class _SignupScreenState extends State<SignupScreen> {
 }
 
 // ============================================================
-// MAIN NAVIGATION
+// MAIN SHELL
 // ============================================================
 
-class MainNavigation extends StatefulWidget {
-  const MainNavigation({super.key});
+class MainShell extends StatefulWidget {
+  const MainShell({super.key});
 
   @override
-  State<MainNavigation> createState() => _MainNavigationState();
+  State<MainShell> createState() => _MainShellState();
 }
 
-class _MainNavigationState extends State<MainNavigation> {
+class _MainShellState extends State<MainShell> {
   int selectedIndex = 0;
 
-  final pages = const [
-    HomeScreen(),
-    SubjectsScreen(),
-    PracticeScreen(),
-    NotesScreen(),
-    ProfileScreen(),
-  ];
+  void changePage(int index) {
+    setState(() {
+      selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: pages[selectedIndex],
+    final pages = [
+      HomeScreen(
+        onOpenSubjects: () => changePage(1),
+      ),
+      const SubjectsScreen(),
+      const PracticeScreen(),
+      const NotesScreen(),
+      const ProfileScreen(),
+    ];
 
+    return Scaffold(
+      body: IndexedStack(
+        index: selectedIndex,
+        children: pages,
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
-        height: 78,
-        onDestinationSelected: (index) {
-          setState(() {
-            selectedIndex = index;
-          });
-        },
+        onDestinationSelected: changePage,
+        height: 75,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
@@ -643,167 +685,180 @@ class _MainNavigationState extends State<MainNavigation> {
 // ============================================================
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final VoidCallback onOpenSubjects;
+
+  const HomeScreen({
+    super.key,
+    required this.onOpenSubjects,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-
-    final name = user?.displayName?.trim().isNotEmpty == true
-        ? user!.displayName!
-        : 'Student';
-
     return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          20,
-          25,
-          20,
-          30,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'SR STUDIES',
-              style: TextStyle(
-                fontSize: 38,
-                fontWeight: FontWeight.bold,
-              ),
+      child: CustomScrollView(
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              25,
+              25,
+              25,
+              0,
             ),
-
-            const SizedBox(height: 25),
-
-            Text(
-              'Hello, $name 👋',
-              style: const TextStyle(
-                fontSize: 34,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            const Text(
-              'Learn • Practice • Succeed',
-              style: TextStyle(
-                fontSize: 21,
-                color: Colors.grey,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(25),
-              decoration: BoxDecoration(
-                color: const Color(0xff4055C5),
-                borderRadius: BorderRadius.circular(28),
-              ),
-              child: const Column(
+            sliver: SliverToBoxAdapter(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Welcome to SR STUDIES',
+                  const Text(
+                    'SR STUDIES',
                     style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 27,
+                      fontSize: 35,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 18),
-                  Text(
-                    'अपने subjects चुनें और अपनी preparation शुरू करें।',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 19,
-                      height: 1.5,
-                      fontWeight: FontWeight.w600,
+
+                  const SizedBox(height: 30),
+
+                  // WELCOME CARD
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(28),
+                    decoration: BoxDecoration(
+                      color: const Color(0xff4054C4),
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                    child: const Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Welcome to SR STUDIES',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 22),
+                        Text(
+                          'अपने subjects चुनें और अपनी\n'
+                          'preparation शुरू करें।',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 21,
+                            fontWeight: FontWeight.w600,
+                            height: 1.45,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+
+                  const SizedBox(height: 35),
+
+                  const Text(
+                    'Subjects',
+                    style: TextStyle(
+                      fontSize: 31,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  SubjectPreview(
+                    title: 'Arts & Social Science',
+                    icon: Icons.menu_book,
+                    onTap: onOpenSubjects,
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  SubjectPreview(
+                    title: 'Science',
+                    icon: Icons.science,
+                    onTap: onOpenSubjects,
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  SubjectPreview(
+                    title: 'Maps',
+                    icon: Icons.public,
+                    onTap: onOpenSubjects,
+                  ),
+
+                  const SizedBox(height: 25),
                 ],
               ),
             ),
-
-            const SizedBox(height: 30),
-
-            const Text(
-              'Quick Start',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 15),
-
-            Row(
-              children: [
-                Expanded(
-                  child: quickCard(
-                    icon: Icons.menu_book,
-                    title: 'Subjects',
-                    subtitle: 'Study',
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: quickCard(
-                    icon: Icons.quiz,
-                    title: 'Practice',
-                    subtitle: 'Test Yourself',
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+}
 
-  static Widget quickCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Icon(
-            icon,
-            size: 45,
-            color: const Color(0xff4055C5),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 19,
-              fontWeight: FontWeight.bold,
+// ============================================================
+// SUBJECT PREVIEW
+// ============================================================
+
+class SubjectPreview extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const SubjectPreview({
+    super.key,
+    required this.title,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 5),
             ),
-          ),
-          Text(
-            subtitle,
-            style: const TextStyle(
-              color: Colors.grey,
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(13),
+              decoration: BoxDecoration(
+                color: const Color(0xffEEF0FF),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Icon(
+                icon,
+                size: 32,
+                color: const Color(0xff4054C4),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 18),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios),
+          ],
+        ),
       ),
     );
   }
@@ -819,187 +874,143 @@ class SubjectsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: SingleChildScrollView(
+      child: ListView(
         padding: const EdgeInsets.fromLTRB(
-          20,
+          22,
           25,
-          20,
+          22,
           30,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Subjects',
-              style: TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
+        children: [
+          const Text(
+            'Subjects',
+            style: TextStyle(
+              fontSize: 36,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          const SizedBox(height: 28),
+
+          const SectionTitle(
+            title: 'Arts & Social Science',
+            icon: Icons.menu_book,
+          ),
+
+          const SizedBox(height: 15),
+
+          SubjectGrid(
+            subjects: [
+              SubjectData(
+                'History\nFoundation',
+                Icons.history_edu,
               ),
-            ),
+              SubjectData(
+                'Economics\nFoundation',
+                Icons.currency_rupee,
+              ),
+              SubjectData(
+                'Geography\nFoundation',
+                Icons.terrain,
+              ),
+              SubjectData(
+                'Polity\nFoundation',
+                Icons.gavel,
+              ),
+            ],
+          ),
 
-            const SizedBox(height: 25),
+          const SizedBox(height: 35),
 
-            buildSection(
-              context,
-              title: 'Science',
-              icon: Icons.science,
-              subjects: [
-                SubjectItem(
-                  'Biology Foundation',
-                  Icons.biotech,
-                ),
-                SubjectItem(
-                  'Chemistry Foundation',
-                  Icons.science,
-                ),
-                SubjectItem(
-                  'Physics Foundation',
-                  Icons.bolt,
-                ),
-              ],
-            ),
+          const SectionTitle(
+            title: 'Science',
+            icon: Icons.science,
+          ),
 
-            const SizedBox(height: 35),
+          const SizedBox(height: 15),
 
-            buildSection(
-              context,
-              title: 'Arts',
-              icon: Icons.auto_stories,
-              subjects: [
-                SubjectItem(
-                  'History Foundation',
-                  Icons.history_edu,
-                ),
-                SubjectItem(
-                  'Economics Foundation',
-                  Icons.currency_rupee,
-                ),
-                SubjectItem(
-                  'Geography Foundation',
-                  Icons.public,
-                ),
-                SubjectItem(
-                  'Polity Foundation',
-                  Icons.account_balance,
-                ),
-              ],
-            ),
+          SubjectGrid(
+            subjects: [
+              SubjectData(
+                'Biology\nFoundation',
+                Icons.biotech,
+              ),
+              SubjectData(
+                'Chemistry\nFoundation',
+                Icons.science,
+              ),
+              SubjectData(
+                'Physics\nFoundation',
+                Icons.bolt,
+              ),
+            ],
+          ),
 
-            const SizedBox(height: 35),
+          const SizedBox(height: 35),
 
-            buildSection(
-              context,
-              title: 'Maps',
-              icon: Icons.map,
-              subjects: [
-                SubjectItem(
-                  'World Map',
-                  Icons.public,
-                ),
-                SubjectItem(
-                  'Indian Map',
-                  Icons.map,
-                ),
-              ],
-            ),
-          ],
-        ),
+          const SectionTitle(
+            title: 'Maps',
+            icon: Icons.public,
+          ),
+
+          const SizedBox(height: 15),
+
+          SubjectGrid(
+            subjects: [
+              SubjectData(
+                'World Map',
+                Icons.public,
+              ),
+              SubjectData(
+                'Indian Map',
+                Icons.map,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
+}
 
-  Widget buildSection(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    required List<SubjectItem> subjects,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+// ============================================================
+// SECTION TITLE
+// ============================================================
+
+class SectionTitle extends StatelessWidget {
+  final String title;
+  final IconData icon;
+
+  const SectionTitle({
+    super.key,
+    required this.title,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
       children: [
-        Row(
-          children: [
-            Icon(
-              icon,
-              size: 30,
-              color: const Color(0xff4055C5),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 29,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 15),
-
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: subjects.length,
-          gridDelegate:
-              const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 15,
-            mainAxisSpacing: 15,
-            childAspectRatio: 0.95,
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xffE8EBFF),
+            borderRadius: BorderRadius.circular(12),
           ),
-          itemBuilder: (context, index) {
-            final subject = subjects[index];
-
-            return GestureDetector(
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      '${subject.name} जल्द उपलब्ध होगा',
-                    ),
-                  ),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.06),
-                      blurRadius: 12,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisAlignment:
-                      MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      subject.icon,
-                      size: 55,
-                      color: const Color(0xff4055C5),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    Text(
-                      subject.name,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                        height: 1.3,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
+          child: Icon(
+            icon,
+            color: const Color(0xff4054C4),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
       ],
     );
@@ -1007,14 +1018,90 @@ class SubjectsScreen extends StatelessWidget {
 }
 
 // ============================================================
-// SUBJECT MODEL
+// SUBJECT GRID
 // ============================================================
 
-class SubjectItem {
-  final String name;
+class SubjectData {
+  final String title;
   final IconData icon;
 
-  SubjectItem(this.name, this.icon);
+  SubjectData(this.title, this.icon);
+}
+
+class SubjectGrid extends StatelessWidget {
+  final List<SubjectData> subjects;
+
+  const SubjectGrid({
+    super.key,
+    required this.subjects,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: subjects.length,
+      gridDelegate:
+          const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
+        childAspectRatio: 0.95,
+      ),
+      itemBuilder: (context, index) {
+        final subject = subjects[index];
+
+        return InkWell(
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  '${subject.title.replaceAll('\n', ' ')} selected',
+                ),
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(22),
+          child: Container(
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 12,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment:
+                  MainAxisAlignment.center,
+              children: [
+                Icon(
+                  subject.icon,
+                  size: 52,
+                  color: const Color(0xff4054C4),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  subject.title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    height: 1.25,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
 // ============================================================
@@ -1026,37 +1113,33 @@ class PracticeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return const SafeArea(
       child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(25),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.quiz,
-                size: 90,
-                color: Color(0xff4055C5),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.quiz_outlined,
+              size: 80,
+              color: Color(0xff4054C4),
+            ),
+            SizedBox(height: 20),
+            Text(
+              'Practice',
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 25),
-              const Text(
-                'Practice',
-                style: TextStyle(
-                  fontSize: 35,
-                  fontWeight: FontWeight.bold,
-                ),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Practice questions यहाँ आएंगे।',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey,
               ),
-              const SizedBox(height: 15),
-              const Text(
-                'यहाँ आगे Questions, MCQs और Tests आएँगे।',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -1072,37 +1155,33 @@ class NotesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return const SafeArea(
       child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(25),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.folder,
-                size: 90,
-                color: Color(0xff4055C5),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.folder_outlined,
+              size: 80,
+              color: Color(0xff4054C4),
+            ),
+            SizedBox(height: 20),
+            Text(
+              'Notes',
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 25),
-              const Text(
-                'Notes',
-                style: TextStyle(
-                  fontSize: 35,
-                  fontWeight: FontWeight.bold,
-                ),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Your notes यहाँ आएंगे।',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey,
               ),
-              const SizedBox(height: 15),
-              const Text(
-                'यहाँ आगे study notes और PDF सामग्री आएगी।',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -1121,66 +1200,99 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final nameController = TextEditingController();
-
-  bool saving = false;
+  User? user;
 
   @override
   void initState() {
     super.initState();
-
-    final user = FirebaseAuth.instance.currentUser;
-
-    nameController.text =
-        user?.displayName?.trim().isNotEmpty == true
-            ? user!.displayName!
-            : 'Student';
+    loadUser();
   }
 
-  @override
-  void dispose() {
-    nameController.dispose();
-    super.dispose();
+  Future<void> loadUser() async {
+    await FirebaseAuth.instance.currentUser?.reload();
+
+    if (mounted) {
+      setState(() {
+        user = FirebaseAuth.instance.currentUser;
+      });
+    }
   }
 
   Future<void> changeName() async {
-    final newName = nameController.text.trim();
+    final controller = TextEditingController(
+      text: user?.displayName ?? '',
+    );
 
-    if (newName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Name खाली नहीं हो सकता'),
-        ),
-      );
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            'Change Name',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: TextField(
+            controller: controller,
+            textCapitalization:
+                TextCapitalization.words,
+            decoration: const InputDecoration(
+              labelText: 'Student Name',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(
+                  context,
+                  controller.text.trim(),
+                );
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    controller.dispose();
+
+    if (newName == null || newName.isEmpty) {
       return;
     }
 
-    setState(() => saving = true);
-
     try {
-      final user = FirebaseAuth.instance.currentUser;
+      await FirebaseAuth.instance.currentUser
+          ?.updateDisplayName(newName);
 
-      await user?.updateDisplayName(newName);
-      await user?.reload();
+      await FirebaseAuth.instance.currentUser?.reload();
 
-      if (!mounted) return;
-
-      setState(() {});
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Name successfully updated!'),
-        ),
-      );
-    } catch (_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Name update नहीं हो पाया'),
-        ),
-      );
-    } finally {
       if (mounted) {
-        setState(() => saving = false);
+        setState(() {
+          user = FirebaseAuth.instance.currentUser;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Name successfully changed'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Name change नहीं हो पाया'),
+          ),
+        );
       }
     }
   }
@@ -1191,176 +1303,120 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-
-    final name =
-        user?.displayName?.trim().isNotEmpty == true
-            ? user!.displayName!
-            : 'Student';
+    final name = user?.displayName ?? 'Student';
+    final email = user?.email ?? '';
 
     return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          20,
-          25,
-          20,
-          40,
-        ),
-        child: Column(
-          children: [
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Profile',
-                style: TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+      child: ListView(
+        padding: const EdgeInsets.all(25),
+        children: [
+          const Text(
+            'Profile',
+            style: TextStyle(
+              fontSize: 36,
+              fontWeight: FontWeight.bold,
             ),
+          ),
 
-            const SizedBox(height: 35),
+          const SizedBox(height: 35),
 
-            CircleAvatar(
-              radius: 70,
-              backgroundColor: const Color(0xff4055C5),
+          Center(
+            child: CircleAvatar(
+              radius: 65,
+              backgroundColor:
+                  const Color(0xff5965AC),
               child: Text(
                 name.isNotEmpty
                     ? name[0].toUpperCase()
                     : 'S',
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 55,
+                  fontSize: 50,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
+          ),
 
-            const SizedBox(height: 20),
+          const SizedBox(height: 25),
 
-            Text(
+          Center(
+            child: Text(
               name,
+              textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 28,
+                fontSize: 30,
                 fontWeight: FontWeight.bold,
               ),
             ),
+          ),
 
-            const SizedBox(height: 8),
+          const SizedBox(height: 10),
 
-            Text(
-              user?.email ?? '',
+          Center(
+            child: Text(
+              email,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: 17,
                 color: Colors.grey,
               ),
             ),
+          ),
 
-            const SizedBox(height: 35),
+          const SizedBox(height: 35),
 
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(22),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 12,
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Change Name',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  TextField(
-                    controller: nameController,
-                    textCapitalization:
-                        TextCapitalization.words,
-                    decoration: InputDecoration(
-                      labelText: 'Student Name',
-                      prefixIcon: const Icon(
-                        Icons.person_outline,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(18),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  SizedBox(
-                    width: double.infinity,
-                    height: 55,
-                    child: ElevatedButton(
-                      onPressed:
-                          saving ? null : changeName,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            const Color(0xff4055C5),
-                        foregroundColor: Colors.white,
-                      ),
-                      child: saving
-                          ? const CircularProgressIndicator(
-                              color: Colors.white,
-                            )
-                          : const Text(
-                              'SAVE NAME',
-                              style: TextStyle(
-                                fontWeight:
-                                    FontWeight.bold,
-                              ),
-                            ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 25),
-
-            SizedBox(
-              width: double.infinity,
-              height: 58,
-              child: OutlinedButton.icon(
-                onPressed: logout,
-                icon: const Icon(Icons.logout),
-                label: const Text(
-                  'Logout',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+          // CHANGE NAME
+          SizedBox(
+            height: 58,
+            child: OutlinedButton.icon(
+              onPressed: changeName,
+              icon: const Icon(Icons.edit),
+              label: const Text(
+                'Change Name',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor:
-                      const Color(0xff4055C5),
-                  side: const BorderSide(
-                    color: Color(0xff4055C5),
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(30),
-                  ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(
+                  color: Color(0xff5965AC),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+
+          const SizedBox(height: 18),
+
+          // LOGOUT
+          SizedBox(
+            height: 58,
+            child: OutlinedButton.icon(
+              onPressed: logout,
+              icon: const Icon(Icons.logout),
+              label: const Text(
+                'Logout',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red,
+                side: const BorderSide(
+                  color: Colors.red,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
