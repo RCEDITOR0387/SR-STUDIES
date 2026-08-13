@@ -40,18 +40,14 @@ class _LoginPageState extends State<LoginPage> {
     if (emailController.text.trim().isEmpty ||
         passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter email and password'),
-        ),
+        const SnackBar(content: Text('Please enter email and password')),
       );
       return;
     }
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (_) => const HomePage(),
-      ),
+      MaterialPageRoute(builder: (_) => const HomePage()),
     );
   }
 
@@ -71,11 +67,7 @@ class _LoginPageState extends State<LoginPage> {
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                const Icon(
-                  Icons.school,
-                  size: 80,
-                  color: Colors.indigo,
-                ),
+                const Icon(Icons.school, size: 80, color: Colors.indigo),
                 const SizedBox(height: 15),
                 const Text(
                   'SR STUDIES',
@@ -90,7 +82,6 @@ class _LoginPageState extends State<LoginPage> {
                   style: TextStyle(color: Colors.grey),
                 ),
                 const SizedBox(height: 40),
-
                 TextField(
                   controller: emailController,
                   keyboardType: TextInputType.emailAddress,
@@ -102,9 +93,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
                 TextField(
                   controller: passwordController,
                   obscureText: hidePassword,
@@ -118,9 +107,7 @@ class _LoginPageState extends State<LoginPage> {
                             : Icons.visibility,
                       ),
                       onPressed: () {
-                        setState(() {
-                          hidePassword = !hidePassword;
-                        });
+                        setState(() => hidePassword = !hidePassword);
                       },
                     ),
                     border: OutlineInputBorder(
@@ -128,9 +115,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
                 SizedBox(
                   width: double.infinity,
                   height: 52,
@@ -145,16 +130,12 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 15),
-
                 TextButton(
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text(
-                          'Real signup will be connected with Firebase next.',
-                        ),
+                        content: Text('Signup will be connected next.'),
                       ),
                     );
                   },
@@ -196,9 +177,7 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: (index) {
-          setState(() {
-            selectedIndex = index;
-          });
+          setState(() => selectedIndex = index);
         },
         destinations: const [
           NavigationDestination(
@@ -258,27 +237,19 @@ class HomeTab extends StatelessWidget {
               style: TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 24),
-
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
                 gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFF3949AB),
-                    Color(0xFF5C6BC0),
-                  ],
+                  colors: [Color(0xFF3949AB), Color(0xFF5C6BC0)],
                 ),
               ),
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.school,
-                    color: Colors.white,
-                    size: 45,
-                  ),
+                  Icon(Icons.school, color: Colors.white, size: 45),
                   SizedBox(height: 12),
                   Text(
                     'Study Smarter',
@@ -291,16 +262,12 @@ class HomeTab extends StatelessWidget {
                   SizedBox(height: 6),
                   Text(
                     'Courses • Classes • Notes • Tests',
-                    style: TextStyle(
-                      color: Colors.white70,
-                    ),
+                    style: TextStyle(color: Colors.white70),
                   ),
                 ],
               ),
             ),
-
             const SizedBox(height: 28),
-
             const Text(
               'Quick Access',
               style: TextStyle(
@@ -308,11 +275,9 @@ class HomeTab extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 15),
-
-            Row(
-              children: const [
+            const Row(
+              children: [
                 Expanded(
                   child: QuickCard(
                     icon: Icons.menu_book,
@@ -328,11 +293,9 @@ class HomeTab extends StatelessWidget {
                 ),
               ],
             ),
-
             const SizedBox(height: 12),
-
-            Row(
-              children: const [
+            const Row(
+              children: [
                 Expanded(
                   child: QuickCard(
                     icon: Icons.picture_as_pdf,
@@ -372,17 +335,11 @@ class QuickCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 22),
         child: Column(
           children: [
-            Icon(
-              icon,
-              size: 34,
-              color: Colors.indigo,
-            ),
+            Icon(icon, size: 34, color: Colors.indigo),
             const SizedBox(height: 10),
             Text(
               title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -391,13 +348,79 @@ class QuickCard extends StatelessWidget {
   }
 }
 
-// ================= COURSES =================
+// ================= COURSE DATA =================
+
+class Course {
+  final String title;
+  final String description;
+  final IconData icon;
+  final Color iconColor;
+  final List<String> chapters;
+
+  const Course({
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.iconColor,
+    required this.chapters,
+  });
+}
+
+const biologyCourse = Course(
+  title: 'Biology Foundation',
+  description: 'Build strong Biology fundamentals.',
+  icon: Icons.biotech,
+  iconColor: Colors.green,
+  chapters: [
+    'Biology Basics',
+    'Cell',
+    'Genetics',
+    'Plant Biology',
+    'Human Biology',
+  ],
+);
+
+const economicsCourse = Course(
+  title: 'Economics Foundation',
+  description: 'Understand the basic concepts of Economics.',
+  icon: Icons.trending_up,
+  iconColor: Colors.orange,
+  chapters: [
+    'Introduction to Economics',
+    'Demand & Supply',
+    'Production',
+    'Market',
+    'Money & Banking',
+  ],
+);
+
+const historyCourse = Course(
+  title: 'History Foundation',
+  description: 'Build a strong foundation in History.',
+  icon: Icons.account_balance,
+  iconColor: Colors.brown,
+  chapters: [
+    'Introduction to History',
+    'Ancient India',
+    'Medieval India',
+    'Modern India',
+    'Indian Freedom Movement',
+  ],
+);
+
+// ================= COURSES TAB =================
 
 class CoursesTab extends StatelessWidget {
   const CoursesTab({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final courses = [
+      biologyCourse,
+      economicsCourse,
+      historyCourse,
+    ];
+
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -411,9 +434,7 @@ class CoursesTab extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 8),
-
             const Text(
               'Choose your foundation course',
               style: TextStyle(
@@ -421,71 +442,12 @@ class CoursesTab extends StatelessWidget {
                 fontSize: 16,
               ),
             ),
-
             const SizedBox(height: 25),
-
-            CourseCard(
-              icon: Icons.biotech,
-              title: 'Biology Foundation',
-              subtitle: 'Build strong Biology fundamentals',
-              iconColor: Colors.green,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const CourseDetailsPage(
-                      title: 'Biology Foundation',
-                      icon: Icons.biotech,
-                      description:
-                          'Learn the fundamental concepts of Biology.',
-                    ),
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: 15),
-
-            CourseCard(
-              icon: Icons.trending_up,
-              title: 'Economics Foundation',
-              subtitle: 'Understand the basics of Economics',
-              iconColor: Colors.orange,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const CourseDetailsPage(
-                      title: 'Economics Foundation',
-                      icon: Icons.trending_up,
-                      description:
-                          'Learn the basic concepts of Economics.',
-                    ),
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: 15),
-
-            CourseCard(
-              icon: Icons.account_balance,
-              title: 'History Foundation',
-              subtitle: 'Build a strong foundation in History',
-              iconColor: Colors.brown,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const CourseDetailsPage(
-                      title: 'History Foundation',
-                      icon: Icons.account_balance,
-                      description:
-                          'Learn important historical concepts and events.',
-                    ),
-                  ),
-                );
-              },
+            ...courses.map(
+              (course) => Padding(
+                padding: const EdgeInsets.only(bottom: 15),
+                child: CourseCard(course: course),
+              ),
             ),
           ],
         ),
@@ -495,19 +457,11 @@ class CoursesTab extends StatelessWidget {
 }
 
 class CourseCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final Color iconColor;
-  final VoidCallback onTap;
+  final Course course;
 
   const CourseCard({
     super.key,
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.iconColor,
-    required this.onTap,
+    required this.course,
   });
 
   @override
@@ -516,29 +470,35 @@ class CourseCard extends StatelessWidget {
       elevation: 2,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CourseChaptersPage(course: course),
+            ),
+          );
+        },
         child: Padding(
           padding: const EdgeInsets.all(18),
           child: Row(
             children: [
               CircleAvatar(
                 radius: 30,
-                backgroundColor: iconColor.withValues(alpha: 0.12),
+                backgroundColor:
+                    course.iconColor.withValues(alpha: 0.12),
                 child: Icon(
-                  icon,
-                  color: iconColor,
+                  course.icon,
+                  color: course.iconColor,
                   size: 30,
                 ),
               ),
-
               const SizedBox(width: 16),
-
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
+                      course.title,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -546,15 +506,12 @@ class CourseCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      subtitle,
-                      style: const TextStyle(
-                        color: Colors.grey,
-                      ),
+                      course.description,
+                      style: const TextStyle(color: Colors.grey),
                     ),
                   ],
                 ),
               ),
-
               const Icon(Icons.arrow_forward_ios, size: 18),
             ],
           ),
@@ -564,78 +521,168 @@ class CourseCard extends StatelessWidget {
   }
 }
 
-// ================= COURSE DETAILS =================
+// ================= CHAPTERS =================
 
-class CourseDetailsPage extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final String description;
+class CourseChaptersPage extends StatelessWidget {
+  final Course course;
 
-  const CourseDetailsPage({
+  const CourseChaptersPage({
     super.key,
-    required this.title,
-    required this.icon,
-    required this.description,
+    required this.course,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: Text(course.title),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          CircleAvatar(
+            radius: 40,
+            child: Icon(course.icon, size: 42),
+          ),
+          const SizedBox(height: 15),
+          Text(
+            course.title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 25,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            course.description,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.grey),
+          ),
+          const SizedBox(height: 25),
+          const Text(
+            'Chapters',
+            style: TextStyle(
+              fontSize: 21,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...List.generate(
+            course.chapters.length,
+            (index) {
+              final chapterNumber = index + 1;
+              final chapterName = course.chapters[index];
+
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    child: Text('$chapterNumber'),
+                  ),
+                  title: Text(
+                    'Chapter $chapterNumber',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  subtitle: Text(chapterName),
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 17,
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ChapterPage(
+                          courseName: course.title,
+                          chapterNumber: chapterNumber,
+                          chapterName: chapterName,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ================= CHAPTER PAGE =================
+
+class ChapterPage extends StatelessWidget {
+  final String courseName;
+  final int chapterNumber;
+  final String chapterName;
+
+  const ChapterPage({
+    super.key,
+    required this.courseName,
+    required this.chapterNumber,
+    required this.chapterName,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Chapter $chapterNumber'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            CircleAvatar(
-              radius: 45,
-              child: Icon(
-                icon,
-                size: 48,
-              ),
+            const Icon(
+              Icons.menu_book,
+              size: 70,
+              color: Colors.indigo,
             ),
-
-            const SizedBox(height: 20),
-
+            const SizedBox(height: 15),
             Text(
-              title,
+              chapterName,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 26,
+                fontSize: 27,
                 fontWeight: FontWeight.bold,
               ),
             ),
-
-            const SizedBox(height: 10),
-
+            const SizedBox(height: 8),
             Text(
-              description,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 16,
-              ),
+              courseName,
+              style: const TextStyle(color: Colors.grey),
             ),
-
             const SizedBox(height: 30),
 
-            const CourseOption(
-              icon: Icons.play_circle_outline,
-              title: 'Video Classes',
-              subtitle: 'Classes will be added here',
+            ChapterOption(
+              icon: Icons.play_circle_fill,
+              title: 'Video Class',
+              subtitle: 'Video lecture will be added here',
+              onTap: () {
+                showComingSoon(context, 'Video Class');
+              },
             ),
 
-            const CourseOption(
+            ChapterOption(
               icon: Icons.picture_as_pdf,
               title: 'Notes / PDF',
-              subtitle: 'Study material will be added here',
+              subtitle: 'Chapter notes will be added here',
+              onTap: () {
+                showComingSoon(context, 'Notes / PDF');
+              },
             ),
 
-            const CourseOption(
-              icon: Icons.quiz_outlined,
-              title: 'Course Test',
-              subtitle: 'Tests will be added here',
+            ChapterOption(
+              icon: Icons.quiz,
+              title: 'Chapter Test',
+              subtitle: 'Test will be added here',
+              onTap: () {
+                showComingSoon(context, 'Chapter Test');
+              },
             ),
           ],
         ),
@@ -644,37 +691,54 @@ class CourseDetailsPage extends StatelessWidget {
   }
 }
 
-class CourseOption extends StatelessWidget {
+class ChapterOption extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
+  final VoidCallback onTap;
 
-  const CourseOption({
+  const ChapterOption({
     super.key,
     required this.icon,
     required this.title,
     required this.subtitle,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 14),
       child: ListTile(
+        contentPadding: const EdgeInsets.all(12),
         leading: CircleAvatar(
+          radius: 27,
           child: Icon(icon),
         ),
         title: Text(
           title,
           style: const TextStyle(
             fontWeight: FontWeight.bold,
+            fontSize: 17,
           ),
         ),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 5),
+          child: Text(subtitle),
+        ),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 17),
+        onTap: onTap,
       ),
     );
   }
+}
+
+void showComingSoon(BuildContext context, String feature) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text('$feature will be added next.'),
+    ),
+  );
 }
 
 // ================= OTHER TABS =================
@@ -720,14 +784,9 @@ class ProfileTab extends StatelessWidget {
         children: [
           const CircleAvatar(
             radius: 45,
-            child: Icon(
-              Icons.person,
-              size: 50,
-            ),
+            child: Icon(Icons.person, size: 50),
           ),
-
           const SizedBox(height: 15),
-
           const Text(
             'My Profile',
             style: TextStyle(
@@ -735,9 +794,7 @@ class ProfileTab extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-
           const SizedBox(height: 20),
-
           OutlinedButton.icon(
             onPressed: () {
               Navigator.pushReplacement(
