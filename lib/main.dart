@@ -57,6 +57,7 @@ class FirebaseErrorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
         body: SafeArea(
           child: Center(
@@ -203,17 +204,23 @@ class _LoginScreenState extends State<LoginScreen> {
     switch (code) {
       case 'invalid-email':
         return 'Email सही नहीं है';
+
       case 'user-not-found':
         return 'यह Email registered नहीं है';
+
       case 'wrong-password':
       case 'invalid-credential':
         return 'Email या Password गलत है';
+
       case 'user-disabled':
         return 'यह account बंद कर दिया गया है';
+
       case 'too-many-requests':
         return 'बहुत ज्यादा attempts हुए हैं';
+
       case 'network-request-failed':
         return 'Internet connection check करें';
+
       default:
         return 'Login failed: $code';
     }
@@ -223,7 +230,9 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+      SnackBar(
+        content: Text(message),
+      ),
     );
   }
 
@@ -232,7 +241,12 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(32, 55, 32, 35),
+          padding: const EdgeInsets.fromLTRB(
+            32,
+            55,
+            32,
+            35,
+          ),
           child: Column(
             children: [
               const Icon(
@@ -458,12 +472,16 @@ class _SignupScreenState extends State<SignupScreen> {
     switch (code) {
       case 'email-already-in-use':
         return 'यह Email पहले से registered है';
+
       case 'invalid-email':
         return 'Email सही नहीं है';
+
       case 'weak-password':
         return 'Password बहुत कमजोर है';
+
       case 'operation-not-allowed':
         return 'Firebase में Email/Password enable करें';
+
       default:
         return 'Signup failed: $code';
     }
@@ -473,7 +491,9 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+      SnackBar(
+        content: Text(message),
+      ),
     );
   }
 
@@ -505,7 +525,8 @@ class _SignupScreenState extends State<SignupScreen> {
               controller: emailController,
               hint: 'Email',
               icon: Icons.email_outlined,
-              keyboardType: TextInputType.emailAddress,
+              keyboardType:
+                  TextInputType.emailAddress,
             ),
             const SizedBox(height: 18),
             AppTextField(
@@ -591,8 +612,9 @@ class _ForgotPasswordScreenState
     setState(() => loading = true);
 
     try {
-      await FirebaseAuth.instance
-          .sendPasswordResetEmail(email: email);
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: email,
+      );
 
       if (mounted) {
         showMessage(
@@ -614,7 +636,9 @@ class _ForgotPasswordScreenState
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+      SnackBar(
+        content: Text(message),
+      ),
     );
   }
 
@@ -995,8 +1019,9 @@ class SubjectCard extends StatelessWidget {
               width: 43,
               height: 43,
               decoration: BoxDecoration(
-                color:
-                    primaryBlue.withOpacity(0.10),
+                color: primaryBlue.withValues(
+                  alpha: 0.10,
+                ),
                 borderRadius:
                     BorderRadius.circular(13),
               ),
@@ -1127,13 +1152,14 @@ class SubjectVideosPage extends StatelessWidget {
 
               return VideoCard(
                 title:
-                    data['title'] ??
+                    data['title']?.toString() ??
                     'Study Video',
                 description:
-                    data['description'] ??
+                    data['description']?.toString() ??
                     '',
                 videoUrl:
-                    data['videoUrl'] ?? '',
+                    data['videoUrl']?.toString() ??
+                    '',
               );
             },
           );
@@ -1163,8 +1189,7 @@ class VideoCard extends StatelessWidget {
     BuildContext context,
   ) async {
     if (videoUrl.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content:
               Text('Video अभी उपलब्ध नहीं है'),
@@ -1175,9 +1200,10 @@ class VideoCard extends StatelessWidget {
 
     final uri = Uri.tryParse(videoUrl);
 
-    if (uri == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
+    if (uri == null ||
+        !uri.hasScheme ||
+        !uri.hasAuthority) {
+      ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Video link गलत है'),
         ),
@@ -1192,8 +1218,7 @@ class VideoCard extends StatelessWidget {
       );
 
       if (!opened && context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content:
                 Text('Video खोलने में समस्या हुई'),
@@ -1202,8 +1227,7 @@ class VideoCard extends StatelessWidget {
       }
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content:
                 Text('Video खोलने में समस्या हुई'),
@@ -1235,9 +1259,8 @@ class VideoCard extends StatelessWidget {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color:
-                        primaryBlue.withOpacity(
-                      0.10,
+                    color: primaryBlue.withValues(
+                      alpha: 0.10,
                     ),
                     borderRadius:
                         BorderRadius.circular(14),
@@ -1317,11 +1340,15 @@ class PracticePage extends StatelessWidget {
         title: 'Practice',
       ),
       body: Center(
-        child: Text(
-          'Practice questions जल्द उपलब्ध होंगे।',
-          style: TextStyle(
-            fontSize: 18,
-            color: Colors.grey,
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Text(
+            'Practice questions जल्द उपलब्ध होंगे।',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey,
+            ),
           ),
         ),
       ),
@@ -1343,17 +1370,25 @@ class NotesPage extends StatelessWidget {
         title: 'Notes',
       ),
       body: Center(
-        child: Text(
-          'Study notes जल्द उपलब्ध होंगे।',
-          style: TextStyle(
-            fontSize: 18,
-            color: Colors.grey,
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Text(
+            'Study notes जल्द उपलब्ध होंगे।',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey,
+            ),
           ),
         ),
       ),
     );
   }
 }
+
+// ======================================================
+// SIMPLE APP BAR
+// ======================================================
 
 class _SimpleAppBar extends StatelessWidget
     implements PreferredSizeWidget {
@@ -1461,9 +1496,10 @@ class _ProfileScreenState
   void showMessage(String message) {
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context)
-        .showSnackBar(
-      SnackBar(content: Text(message)),
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+      ),
     );
   }
 
@@ -1615,18 +1651,39 @@ class SocialButton extends StatelessWidget {
   Future<void> openLink(
     BuildContext context,
   ) async {
-    final uri = Uri.parse(url);
+    final uri = Uri.tryParse(url);
+
+    if (uri == null ||
+        !uri.hasScheme ||
+        !uri.hasAuthority) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('$title का link गलत है'),
+          ),
+        );
+      }
+      return;
+    }
 
     try {
-      await launchUrl(
+      final opened = await launchUrl(
         uri,
-        mode:
-            LaunchMode.externalApplication,
+        mode: LaunchMode.externalApplication,
       );
+
+      if (!opened && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('$title खोलने में समस्या हुई'),
+          ),
+        );
+      }
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content:
                 Text('$title खोलने में समस्या हुई'),
