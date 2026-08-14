@@ -1,330 +1,331 @@
 name: Build SR STUDIES APK
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
+workflow_dispatch:
+push:
+branches:
+- main
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-
-      # 1. Checkout repository
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      # 2. Setup Flutter
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.35.0"
-          channel: stable
-          cache: true
-
-      # 3. Check Firebase file
-      - name: Check Firebase Configuration
-        run: |
-          if [ ! -f "android/app/google-services.json" ]; then
-            echo "ERROR: android/app/google-services.json not found!"
-            exit 1
-          fi
-
-          echo "Firebase configuration found."
-
-      # 4. Read exact Firebase package name
-      - name: Read Firebase Package Name
-        shell: bash
-        run: |
-          PACKAGE_NAME=$(python3 - <<'PY'
-          import json
-
-          with open("android/app/google-services.json", "r") as f:
-              data = json.load(f)
-
-          print(
-              data["client"][0]["client_info"]["android_client_info"]["package_name"]
-          )
-          PY
-          )
-
-          if [ -z "$PACKAGE_NAME" ]; then
-            echo "ERROR: Firebase package name is empty!"
-            exit 1
-          fi
-
-          echo "Firebase package: $PACKAGE_NAME"
-          echo "PACKAGE_NAME=$PACKAGE_NAME" >> "$GITHUB_ENV"
-
-      # 5. Backup Firebase configuration
-      - name: Backup Firebase Configuration
-        run: |
-          mkdir -p /tmp/sr_firebase
-          cp android/app/google-services.json \
-             /tmp/sr_firebase/google-services.json
-
-          echo "Firebase configuration backed up."
-
-      # 6. Remove old Android project
-      - name: Remove Old Android Project
-        run: |
-          rm -rf android
-          echo "Old Android project removed."
-
-      # 7. Calculate Flutter organization/project
-      - name: Calculate Flutter Package Parts
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          import os
-
-          package = os.environ["PACKAGE_NAME"]
-          parts = package.split(".")
-
-          if len(parts) < 2:
-              raise SystemExit(
-                  "Invalid Android package name: " + package
-              )
-
-          project_name = parts[-1]
-          organization = ".".join(parts[:-1])
-
-          project_name = project_name.replace("-", "_")
-
-          with open("/tmp/sr_org", "w") as f:
-              f.write(organization)
-
-          with open("/tmp/sr_project", "w") as f:
-              f.write(project_name)
-
-          print("Organization:", organization)
-          print("Project:", project_name)
-          PY
-
-      # 8. Create completely fresh modern Android project
-      - name: Create Modern Android Project
-        run: |
-          ORG=$(cat /tmp/sr_org)
-          PROJECT=$(cat /tmp/sr_project)
-
-          flutter create \
-            --platforms=android \
-            --org="$ORG" \
-            --project-name="$PROJECT" \
-            .
-
-          echo "Fresh modern Android project created."
-
-      # 9. Remove default test
-      - name: Remove Default Flutter Test
-        run: |
-          rm -f test/widget_test.dart
-          echo "Default test removed."
-
-      # 10. Restore Firebase
-      - name: Restore Firebase Configuration
-        run: |
-          mkdir -p android/app
-
-          cp /tmp/sr_firebase/google-services.json \
-             android/app/google-services.json
-
-          echo "Firebase configuration restored."
-
-      # 11. Set application name and launcher icon
-      - name: Configure Android App Name
-        shell: bash
-        run: |
-          MANIFEST="android/app/src/main/AndroidManifest.xml"
-
-          python3 - <<'PY'
-          import re
-
-          path = "android/app/src/main/AndroidManifest.xml"
-
-          with open(path, "r", encoding="utf-8") as f:
-              text = f.read()
-
-          # Set launcher app name
-          if 'android:label=' in text:
-              text = re.sub(
-                  r'android:label="[^"]*"',
-                  'android:label="SR STUDIES"',
-                  text,
-                  count=1
-              )
-          else:
-              text = text.replace(
-                  '<application',
-                  '<application android:label="SR STUDIES"',
-                  1
-              )
-
-          # Set icon reference
-          if 'android:icon=' in text:
-              text = re.sub(
-                  r'android:icon="[^"]*"',
-                  'android:icon="@mipmap/ic_launcher"',
-                  text,
-                  count=1
-              )
-          else:
-              text = text.replace(
-                  '<application',
-                  '<application android:icon="@mipmap/ic_launcher"',
-                  1
-              )
-
-          with open(path, "w", encoding="utf-8") as f:
-              f.write(text)
-
-          print("Android label set to SR STUDIES")
-          print("Android icon set to @mipmap/ic_launcher")
-          PY
-
-      # 12. Configure Google Services
-      - name: Configure Google Services
-        run: |
-          if ! grep -q "com.google.gms.google-services" \
-            android/settings.gradle.kts; then
-
-            sed -i \
-              '/plugins {/a\    id("com.google.gms.google-services") version "4.4.2" apply false' \
-              android/settings.gradle.kts
-          fi
-
-          if ! grep -q 'id("com.google.gms.google-services")' \
-            android/app/build.gradle.kts; then
-
-            sed -i \
-              '/id("dev.flutter.flutter-gradle-plugin")/a\    id("com.google.gms.google-services")' \
-              android/app/build.gradle.kts
-          fi
-
-          echo "Google Services configured."
-
-      # 13. Check custom icon
-      - name: Check Custom App Icon
-        run: |
-          if [ ! -f "assets/icon/app_icon.png" ]; then
-            echo "ERROR: assets/icon/app_icon.png not found!"
-            exit 1
-          fi
-
-          echo "Custom app icon found."
-
-      # 14. Install ImageMagick
-      - name: Install ImageMagick
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y imagemagick
-
-      # 15. Generate launcher icons manually
-      - name: Generate Android Launcher Icons
-        shell: bash
-        run: |
-          ICON="assets/icon/app_icon.png"
-          RES="android/app/src/main/res"
-
-          echo "Preparing icon..."
-
-          # Normalize source image to a simple PNG.
-          convert "$ICON" \
-            -auto-orient \
-            -background white \
-            -alpha remove \
-            -alpha off \
-            -resize 1024x1024 \
-            -gravity center \
-            -extent 1024x1024 \
-            -strip \
-            PNG24:/tmp/sr_studies_icon.png
-
-          identify /tmp/sr_studies_icon.png
-
-          # Create mipmap folders.
-          mkdir -p "$RES/mipmap-mdpi"
-          mkdir -p "$RES/mipmap-hdpi"
-          mkdir -p "$RES/mipmap-xhdpi"
-          mkdir -p "$RES/mipmap-xxhdpi"
-          mkdir -p "$RES/mipmap-xxxhdpi"
-
-          # Remove adaptive icon XML so Android uses our PNG.
-          rm -f "$RES/mipmap-anydpi-v26/ic_launcher.xml" || true
-          rm -f "$RES/mipmap-anydpi-v26/ic_launcher_round.xml" || true
-
-          # Generate icon sizes.
-          convert /tmp/sr_studies_icon.png \
-            -resize 48x48 \
-            PNG24:"$RES/mipmap-mdpi/ic_launcher.png"
-
-          convert /tmp/sr_studies_icon.png \
-            -resize 72x72 \
-            PNG24:"$RES/mipmap-hdpi/ic_launcher.png"
-
-          convert /tmp/sr_studies_icon.png \
-            -resize 96x96 \
-            PNG24:"$RES/mipmap-xhdpi/ic_launcher.png"
-
-          convert /tmp/sr_studies_icon.png \
-            -resize 144x144 \
-            PNG24:"$RES/mipmap-xxhdpi/ic_launcher.png"
-
-          convert /tmp/sr_studies_icon.png \
-            -resize 192x192 \
-            PNG24:"$RES/mipmap-xxxhdpi/ic_launcher.png"
-
-          echo "Custom launcher icons generated."
-
-      # 16. Get dependencies
-      - name: Get Dependencies
-        run: |
-          flutter pub get
-
-      # 17. Check modern Android embedding
-      - name: Verify Modern Android Embedding
-        run: |
-          if grep -R "io.flutter.app.FlutterActivity" android 2>/dev/null; then
-            echo "ERROR: Old Flutter Android v1 embedding detected!"
-            exit 1
-          fi
-
-          if grep -R "io.flutter.app.FlutterApplication" android 2>/dev/null; then
-            echo "ERROR: Old Flutter Android v1 application detected!"
-            exit 1
-          fi
-
-          echo "Modern Flutter Android embedding confirmed."
-
-      # 18. Analyze code
-      - name: Analyze Code
-        run: |
-          flutter analyze
-
-      # 19. Build APK
-      - name: Build APK
-        run: |
-          flutter clean
-          flutter pub get
-          flutter build apk --release
-
-      # 20. Verify APK
-      - name: Verify APK
-        run: |
-          if [ ! -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
-            echo "ERROR: APK was not created!"
-            exit 1
-          fi
-
-          ls -lh build/app/outputs/flutter-apk/app-release.apk
-          echo "APK created successfully."
-
-      # 21. Upload APK
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: SR-STUDIES-APK
-          path: build/app/outputs/flutter-apk/app-release.apk
-          if-no-files-found: error
+build:
+runs-on: ubuntu-latest
+
+steps:  
+
+  # 1. Checkout repository  
+  - name: Checkout Repository  
+    uses: actions/checkout@v4  
+
+  # 2. Setup Flutter  
+  - name: Setup Flutter  
+    uses: subosito/flutter-action@v2  
+    with:  
+      flutter-version: "3.35.0"  
+      channel: stable  
+      cache: true  
+
+  # 3. Check Firebase file  
+  - name: Check Firebase Configuration  
+    run: |  
+      if [ ! -f "android/app/google-services.json" ]; then  
+        echo "ERROR: android/app/google-services.json not found!"  
+        exit 1  
+      fi  
+
+      echo "Firebase configuration found."  
+
+  # 4. Read exact Firebase package name  
+  - name: Read Firebase Package Name  
+    shell: bash  
+    run: |  
+      PACKAGE_NAME=$(python3 - <<'PY'  
+      import json  
+
+      with open("android/app/google-services.json", "r") as f:  
+          data = json.load(f)  
+
+      print(  
+          data["client"][0]["client_info"]["android_client_info"]["package_name"]  
+      )  
+      PY  
+      )  
+
+      if [ -z "$PACKAGE_NAME" ]; then  
+        echo "ERROR: Firebase package name is empty!"  
+        exit 1  
+      fi  
+
+      echo "Firebase package: $PACKAGE_NAME"  
+      echo "PACKAGE_NAME=$PACKAGE_NAME" >> "$GITHUB_ENV"  
+
+  # 5. Backup Firebase configuration  
+  - name: Backup Firebase Configuration  
+    run: |  
+      mkdir -p /tmp/sr_firebase  
+      cp android/app/google-services.json \  
+         /tmp/sr_firebase/google-services.json  
+
+      echo "Firebase configuration backed up."  
+
+  # 6. Remove old Android project  
+  - name: Remove Old Android Project  
+    run: |  
+      rm -rf android  
+      echo "Old Android project removed."  
+
+  # 7. Calculate Flutter organization/project  
+  - name: Calculate Flutter Package Parts  
+    shell: bash  
+    run: |  
+      python3 - <<'PY'  
+      import os  
+
+      package = os.environ["PACKAGE_NAME"]  
+      parts = package.split(".")  
+
+      if len(parts) < 2:  
+          raise SystemExit(  
+              "Invalid Android package name: " + package  
+          )  
+
+      project_name = parts[-1]  
+      organization = ".".join(parts[:-1])  
+
+      project_name = project_name.replace("-", "_")  
+
+      with open("/tmp/sr_org", "w") as f:  
+          f.write(organization)  
+
+      with open("/tmp/sr_project", "w") as f:  
+          f.write(project_name)  
+
+      print("Organization:", organization)  
+      print("Project:", project_name)  
+      PY  
+
+  # 8. Create completely fresh modern Android project  
+  - name: Create Modern Android Project  
+    run: |  
+      ORG=$(cat /tmp/sr_org)  
+      PROJECT=$(cat /tmp/sr_project)  
+
+      flutter create \  
+        --platforms=android \  
+        --org="$ORG" \  
+        --project-name="$PROJECT" \  
+        .  
+
+      echo "Fresh modern Android project created."  
+
+  # 9. Remove default test  
+  - name: Remove Default Flutter Test  
+    run: |  
+      rm -f test/widget_test.dart  
+      echo "Default test removed."  
+
+  # 10. Restore Firebase  
+  - name: Restore Firebase Configuration  
+    run: |  
+      mkdir -p android/app  
+
+      cp /tmp/sr_firebase/google-services.json \  
+         android/app/google-services.json  
+
+      echo "Firebase configuration restored."  
+
+  # 11. Set application name and launcher icon  
+  - name: Configure Android App Name  
+    shell: bash  
+    run: |  
+      MANIFEST="android/app/src/main/AndroidManifest.xml"  
+
+      python3 - <<'PY'  
+      import re  
+
+      path = "android/app/src/main/AndroidManifest.xml"  
+
+      with open(path, "r", encoding="utf-8") as f:  
+          text = f.read()  
+
+      # Set launcher app name  
+      if 'android:label=' in text:  
+          text = re.sub(  
+              r'android:label="[^"]*"',  
+              'android:label="SR STUDIES"',  
+              text,  
+              count=1  
+          )  
+      else:  
+          text = text.replace(  
+              '<application',  
+              '<application android:label="SR STUDIES"',  
+              1  
+          )  
+
+      # Set icon reference  
+      if 'android:icon=' in text:  
+          text = re.sub(  
+              r'android:icon="[^"]*"',  
+              'android:icon="@mipmap/ic_launcher"',  
+              text,  
+              count=1  
+          )  
+      else:  
+          text = text.replace(  
+              '<application',  
+              '<application android:icon="@mipmap/ic_launcher"',  
+              1  
+          )  
+
+      with open(path, "w", encoding="utf-8") as f:  
+          f.write(text)  
+
+      print("Android label set to SR STUDIES")  
+      print("Android icon set to @mipmap/ic_launcher")  
+      PY  
+
+  # 12. Configure Google Services  
+  - name: Configure Google Services  
+    run: |  
+      if ! grep -q "com.google.gms.google-services" \  
+        android/settings.gradle.kts; then  
+
+        sed -i \  
+          '/plugins {/a\    id("com.google.gms.google-services") version "4.4.2" apply false' \  
+          android/settings.gradle.kts  
+      fi  
+
+      if ! grep -q 'id("com.google.gms.google-services")' \  
+        android/app/build.gradle.kts; then  
+
+        sed -i \  
+          '/id("dev.flutter.flutter-gradle-plugin")/a\    id("com.google.gms.google-services")' \  
+          android/app/build.gradle.kts  
+      fi  
+
+      echo "Google Services configured."  
+
+  # 13. Check custom icon  
+  - name: Check Custom App Icon  
+    run: |  
+      if [ ! -f "assets/icon/app_icon.png" ]; then  
+        echo "ERROR: assets/icon/app_icon.png not found!"  
+        exit 1  
+      fi  
+
+      echo "Custom app icon found."  
+
+  # 14. Install ImageMagick  
+  - name: Install ImageMagick  
+    run: |  
+      sudo apt-get update -qq  
+      sudo apt-get install -y imagemagick  
+
+  # 15. Generate launcher icons manually  
+  - name: Generate Android Launcher Icons  
+    shell: bash  
+    run: |  
+      ICON="assets/icon/app_icon.png"  
+      RES="android/app/src/main/res"  
+
+      echo "Preparing icon..."  
+
+      # Normalize source image to a simple PNG.  
+      convert "$ICON" \  
+        -auto-orient \  
+        -background white \  
+        -alpha remove \  
+        -alpha off \  
+        -resize 1024x1024 \  
+        -gravity center \  
+        -extent 1024x1024 \  
+        -strip \  
+        PNG24:/tmp/sr_studies_icon.png  
+
+      identify /tmp/sr_studies_icon.png  
+
+      # Create mipmap folders.  
+      mkdir -p "$RES/mipmap-mdpi"  
+      mkdir -p "$RES/mipmap-hdpi"  
+      mkdir -p "$RES/mipmap-xhdpi"  
+      mkdir -p "$RES/mipmap-xxhdpi"  
+      mkdir -p "$RES/mipmap-xxxhdpi"  
+
+      # Remove adaptive icon XML so Android uses our PNG.  
+      rm -f "$RES/mipmap-anydpi-v26/ic_launcher.xml" || true  
+      rm -f "$RES/mipmap-anydpi-v26/ic_launcher_round.xml" || true  
+
+      # Generate icon sizes.  
+      convert /tmp/sr_studies_icon.png \  
+        -resize 48x48 \  
+        PNG24:"$RES/mipmap-mdpi/ic_launcher.png"  
+
+      convert /tmp/sr_studies_icon.png \  
+        -resize 72x72 \  
+        PNG24:"$RES/mipmap-hdpi/ic_launcher.png"  
+
+      convert /tmp/sr_studies_icon.png \  
+        -resize 96x96 \  
+        PNG24:"$RES/mipmap-xhdpi/ic_launcher.png"  
+
+      convert /tmp/sr_studies_icon.png \  
+        -resize 144x144 \  
+        PNG24:"$RES/mipmap-xxhdpi/ic_launcher.png"  
+
+      convert /tmp/sr_studies_icon.png \  
+        -resize 192x192 \  
+        PNG24:"$RES/mipmap-xxxhdpi/ic_launcher.png"  
+
+      echo "Custom launcher icons generated."  
+
+  # 16. Get dependencies  
+  - name: Get Dependencies  
+    run: |  
+      flutter pub get  
+
+  # 17. Check modern Android embedding  
+  - name: Verify Modern Android Embedding  
+    run: |  
+      if grep -R "io.flutter.app.FlutterActivity" android 2>/dev/null; then  
+        echo "ERROR: Old Flutter Android v1 embedding detected!"  
+        exit 1  
+      fi  
+
+      if grep -R "io.flutter.app.FlutterApplication" android 2>/dev/null; then  
+        echo "ERROR: Old Flutter Android v1 application detected!"  
+        exit 1  
+      fi  
+
+      echo "Modern Flutter Android embedding confirmed."  
+
+  # 18. Analyze code  
+  - name: Analyze Code  
+    run: |  
+      flutter analyze  
+
+  # 19. Build APK  
+  - name: Build APK  
+    run: |  
+      flutter clean  
+      flutter pub get  
+      flutter build apk --release  
+
+  # 20. Verify APK  
+  - name: Verify APK  
+    run: |  
+      if [ ! -f "build/app/outputs/flutter-apk/app-release.apk" ]; then  
+        echo "ERROR: APK was not created!"  
+        exit 1  
+      fi  
+
+      ls -lh build/app/outputs/flutter-apk/app-release.apk  
+      echo "APK created successfully."  
+
+  # 21. Upload APK  
+  - name: Upload APK  
+    uses: actions/upload-artifact@v4  
+    with:  
+      name: SR-STUDIES-APK  
+      path: build/app/outputs/flutter-apk/app-release.apk  
+      if-no-files-found: error
+      
