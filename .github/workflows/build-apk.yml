@@ -24,7 +24,7 @@ jobs:
           channel: stable
           cache: true
 
-      # 3. Check Firebase
+      # 3. Check Firebase Configuration
       - name: Check Firebase Configuration
         run: |
           if [ ! -f android/app/google-services.json ]; then
@@ -34,7 +34,7 @@ jobs:
 
           echo "Firebase configuration found."
 
-      # 4. Read Firebase Package
+      # 4. Read Firebase Package Name
       - name: Read Firebase Package Name
         run: |
           PACKAGE_NAME=$(python3 -c "import json; print(json.load(open('android/app/google-services.json'))['client'][0]['client_info']['android_client_info']['package_name'])")
@@ -48,10 +48,13 @@ jobs:
           mkdir -p /tmp/firebase
           cp android/app/google-services.json /tmp/firebase/google-services.json
 
+          echo "Firebase configuration backed up."
+
       # 6. Remove Old Android Project
       - name: Remove Old Android Project
         run: |
           rm -rf android
+          echo "Old Android project removed."
 
       # 7. Create Modern Android Project
       - name: Create Modern Android Project
@@ -61,48 +64,70 @@ jobs:
             --project-name=sr_studies \
             .
 
-      # 8. Restore Firebase Configuration
+          echo "Modern Android project created."
+
+      # 8. Remove Default Flutter Test
+      - name: Remove Default Flutter Test
+        run: |
+          rm -f test/widget_test.dart
+          echo "Default widget test removed."
+
+      # 9. Restore Firebase Configuration
       - name: Restore Firebase Configuration
         run: |
           mkdir -p android/app
+
           cp /tmp/firebase/google-services.json \
              android/app/google-services.json
 
           echo "Firebase configuration restored."
 
-      # 9. Configure Android Package
+      # 10. Configure Android Package
       - name: Configure Android Package
         run: |
           sed -i "s/com.example.sr_studies/$PACKAGE_NAME/g" \
             android/app/build.gradle.kts
 
-          echo "Package configured: $PACKAGE_NAME"
+          echo "Android package configured: $PACKAGE_NAME"
 
-      # 10. Configure Google Services Plugin
+      # 11. Configure Google Services Plugin
       - name: Configure Google Services Plugin
         run: |
-          sed -i '/plugins {/a\    id("com.google.gms.google-services") version "4.4.2" apply false' \
-            android/settings.gradle.kts
+          if ! grep -q 'com.google.gms.google-services' android/settings.gradle.kts; then
+            sed -i '/plugins {/a\    id("com.google.gms.google-services") version "4.4.2" apply false' \
+              android/settings.gradle.kts
+          fi
 
-          sed -i '/id("dev.flutter.flutter-gradle-plugin")/a\    id("com.google.gms.google-services")' \
-            android/app/build.gradle.kts
+          if ! grep -q 'id("com.google.gms.google-services")' android/app/build.gradle.kts; then
+            sed -i '/id("dev.flutter.flutter-gradle-plugin")/a\    id("com.google.gms.google-services")' \
+              android/app/build.gradle.kts
+          fi
 
-      # 11. Get Dependencies
+          echo "Google Services plugin configured."
+
+      # 12. Get Dependencies
       - name: Get Dependencies
         run: |
           flutter pub get
 
-      # 12. Analyze Code
+      # 13. Generate Custom App Icon
+      - name: Generate Custom App Icon
+        run: |
+          dart run flutter_launcher_icons
+
+          echo "Custom SR STUDIES app icon generated."
+
+      # 14. Analyze Flutter Code
       - name: Analyze Code
         run: |
           flutter analyze
 
-      # 13. Build Release APK
+      # 15. Build Release APK
       - name: Build APK
         run: |
           flutter build apk --release
 
-      # 14. Upload APK
+      # 16. Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
