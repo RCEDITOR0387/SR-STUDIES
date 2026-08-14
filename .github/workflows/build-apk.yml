@@ -27,8 +27,6 @@ jobs:
         run: flutter create --platforms=android --project-name=sr_studies .
 
       # 4. Remove Default Flutter Test
-      # Flutter create automatically creates test/widget_test.dart
-      # which contains MyApp(). Our app uses SRStudiesApp().
       - name: Remove Default Flutter Test
         run: |
           rm -f test/widget_test.dart
@@ -83,15 +81,21 @@ jobs:
       - name: Get Dependencies
         run: flutter pub get
 
-      # 11. Analyze Code
+      # 11. Generate Custom SR STUDIES App Icon
+      - name: Generate App Icon
+        run: |
+          dart run flutter_launcher_icons
+          echo "SR STUDIES app icon generated successfully."
+
+      # 12. Analyze Code
       - name: Analyze Code
         run: flutter analyze
 
-      # 12. Build Release APK
+      # 13. Build Release APK
       - name: Build APK
         run: flutter build apk --release
 
-      # 13. Upload APK
+      # 14. Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
