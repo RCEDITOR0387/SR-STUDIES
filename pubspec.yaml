@@ -1,23 +1,26 @@
 name: sr_studies
-description: SR STUDIES - Official Coaching & Study App
-publish_to: 'none'
+description: SR STUDIES - Education App
+publish_to: "none"
 
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.9.0 <4.0.0"
+  sdk: ">=3.6.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
 
+  # Firebase
+  firebase_core: ^4.12.1
+  firebase_auth: ^6.5.6
+  cloud_firestore: ^6.7.1
+
+  # Open YouTube / Instagram / Telegram links
+  url_launcher: ^6.3.2
+
+  # Icons
   cupertino_icons: ^1.0.8
-
-  firebase_core: ^4.0.0
-  firebase_auth: ^6.0.0
-  cloud_firestore: ^6.0.0
-
-  youtube_player_flutter: ^9.1.2
 
 dev_dependencies:
   flutter_test:
