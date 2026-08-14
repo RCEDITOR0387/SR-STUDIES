@@ -11,26 +11,40 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout Repository
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 2. Setup Flutter
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.35.0'
           channel: stable
 
+      # 3. Create Android Project
       - name: Create Android Project
         run: flutter create --platforms=android --project-name=sr_studies .
 
+      # 4. Remove Default Flutter Test
+      # Flutter create automatically creates test/widget_test.dart
+      # which contains MyApp(). Our app uses SRStudiesApp().
+      - name: Remove Default Flutter Test
+        run: |
+          rm -f test/widget_test.dart
+          echo "Default widget test removed."
+
+      # 5. Check Firebase Config
       - name: Check Firebase Config
         run: |
           if [ ! -f android/app/google-services.json ]; then
             echo "ERROR: google-services.json not found!"
             exit 1
           fi
+
           echo "Firebase config found."
 
+      # 6. Install Required Packages
       - name: Install Required Packages
         run: |
           flutter pub add firebase_core
@@ -38,32 +52,46 @@ jobs:
           flutter pub add cloud_firestore
           flutter pub add url_launcher
 
+      # 7. Read Firebase Package Name
       - name: Read Firebase Package Name
         run: |
           PACKAGE_NAME=$(python3 -c "import json; print(json.load(open('android/app/google-services.json'))['client'][0]['client_info']['android_client_info']['package_name'])")
+
           echo "Firebase package: $PACKAGE_NAME"
           echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
 
+      # 8. Configure Android Package
       - name: Configure Android Package
         run: |
           sed -i "s/com.example.sr_studies/$PACKAGE_NAME/g" android/app/build.gradle.kts
-          sed -i "s/com.example.sr_studies/$PACKAGE_NAME/g" android/app/src/main/AndroidManifest.xml 2>/dev/null || true
 
+          sed -i "s/com.example.sr_studies/$PACKAGE_NAME/g" \
+            android/app/src/main/AndroidManifest.xml 2>/dev/null || true
+
+      # 9. Configure Google Services Plugin
       - name: Configure Google Services Plugin
         run: |
-          sed -i '/dev.flutter.flutter-plugin-loader/a\    id("com.google.gms.google-services") version "4.4.2" apply false' android/settings.gradle.kts
+          if ! grep -q 'com.google.gms.google-services' android/settings.gradle.kts; then
+            sed -i '/dev.flutter.flutter-plugin-loader/a\    id("com.google.gms.google-services") version "4.4.2" apply false' android/settings.gradle.kts
+          fi
 
-          sed -i '/id("dev.flutter.flutter-gradle-plugin")/a\    id("com.google.gms.google-services")' android/app/build.gradle.kts
+          if ! grep -q 'id("com.google.gms.google-services")' android/app/build.gradle.kts; then
+            sed -i '/id("dev.flutter.flutter-gradle-plugin")/a\    id("com.google.gms.google-services")' android/app/build.gradle.kts
+          fi
 
+      # 10. Get Dependencies
       - name: Get Dependencies
         run: flutter pub get
 
+      # 11. Analyze Code
       - name: Analyze Code
         run: flutter analyze
 
+      # 12. Build Release APK
       - name: Build APK
         run: flutter build apk --release
 
+      # 13. Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
