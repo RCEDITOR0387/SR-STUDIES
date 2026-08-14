@@ -22,13 +22,12 @@ jobs:
         with:
           flutter-version: '3.35.0'
           channel: stable
-          cache: true
 
       # 3. Check Firebase Configuration
       - name: Check Firebase Configuration
         run: |
           if [ ! -f android/app/google-services.json ]; then
-            echo "ERROR: android/app/google-services.json not found!"
+            echo "ERROR: google-services.json not found!"
             exit 1
           fi
 
@@ -39,16 +38,13 @@ jobs:
         run: |
           PACKAGE_NAME=$(python3 -c "import json; print(json.load(open('android/app/google-services.json'))['client'][0]['client_info']['android_client_info']['package_name'])")
 
-          echo "Firebase package: $PACKAGE_NAME"
+          echo "Firebase package name: $PACKAGE_NAME"
           echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
 
       # 5. Backup Firebase Configuration
       - name: Backup Firebase Configuration
         run: |
-          mkdir -p /tmp/firebase
-          cp android/app/google-services.json /tmp/firebase/google-services.json
-
-          echo "Firebase configuration backed up."
+          cp android/app/google-services.json /tmp/google-services.json
 
       # 6. Remove Old Android Project
       - name: Remove Old Android Project
@@ -62,9 +58,8 @@ jobs:
           flutter create \
             --platforms=android \
             --project-name=sr_studies \
+            --org="$PACKAGE_NAME" \
             .
-
-          echo "Modern Android project created."
 
       # 8. Remove Default Flutter Test
       - name: Remove Default Flutter Test
@@ -75,26 +70,25 @@ jobs:
       # 9. Restore Firebase Configuration
       - name: Restore Firebase Configuration
         run: |
-          mkdir -p android/app
-
-          cp /tmp/firebase/google-services.json \
-             android/app/google-services.json
-
+          cp /tmp/google-services.json android/app/google-services.json
           echo "Firebase configuration restored."
 
       # 10. Configure Android Package
       - name: Configure Android Package
         run: |
-          sed -i "s/com.example.sr_studies/$PACKAGE_NAME/g" \
-            android/app/build.gradle.kts
+          echo "Firebase package: $PACKAGE_NAME"
 
-          echo "Android package configured: $PACKAGE_NAME"
+          sed -i "s/com.example.sr_studies/$PACKAGE_NAME/g" \
+            android/app/build.gradle.kts || true
+
+          sed -i "s/com.example.sr_studies/$PACKAGE_NAME/g" \
+            android/app/src/main/AndroidManifest.xml || true
 
       # 11. Configure Google Services Plugin
       - name: Configure Google Services Plugin
         run: |
           if ! grep -q 'com.google.gms.google-services' android/settings.gradle.kts; then
-            sed -i '/plugins {/a\    id("com.google.gms.google-services") version "4.4.2" apply false' \
+            sed -i '/dev.flutter.flutter-plugin-loader/a\    id("com.google.gms.google-services") version "4.4.2" apply false' \
               android/settings.gradle.kts
           fi
 
@@ -103,31 +97,77 @@ jobs:
               android/app/build.gradle.kts
           fi
 
-          echo "Google Services plugin configured."
+          echo "Google Services configured."
 
-      # 12. Get Dependencies
+      # 12. Get Flutter Dependencies
       - name: Get Dependencies
         run: |
           flutter pub get
 
-      # 13. Generate Custom App Icon
-      - name: Generate Custom App Icon
+      # 13. Check Custom App Icon
+      - name: Check Custom App Icon
         run: |
-          dart run flutter_launcher_icons
+          if [ ! -f assets/icon/app_icon.png ]; then
+            echo "ERROR: assets/icon/app_icon.png not found!"
+            exit 1
+          fi
 
-          echo "Custom SR STUDIES app icon generated."
+          echo "Custom app icon found."
 
-      # 14. Analyze Flutter Code
+      # 14. Generate Android App Icons
+      - name: Generate Android App Icons
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+
+          ICON="assets/icon/app_icon.png"
+          RES="android/app/src/main/res"
+
+          echo "Generating SR STUDIES launcher icons..."
+
+          mkdir -p "$RES/mipmap-mdpi"
+          mkdir -p "$RES/mipmap-hdpi"
+          mkdir -p "$RES/mipmap-xhdpi"
+          mkdir -p "$RES/mipmap-xxhdpi"
+          mkdir -p "$RES/mipmap-xxxhdpi"
+
+          convert "$ICON" -resize 48x48 \
+            "$RES/mipmap-mdpi/ic_launcher.png"
+
+          convert "$ICON" -resize 72x72 \
+            "$RES/mipmap-hdpi/ic_launcher.png"
+
+          convert "$ICON" -resize 96x96 \
+            "$RES/mipmap-xhdpi/ic_launcher.png"
+
+          convert "$ICON" -resize 144x144 \
+            "$RES/mipmap-xxhdpi/ic_launcher.png"
+
+          convert "$ICON" -resize 192x192 \
+            "$RES/mipmap-xxxhdpi/ic_launcher.png"
+
+          echo "Android launcher icons generated."
+
+      # 15. Configure Android Launcher Icon
+      - name: Configure Launcher Icon
+        run: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+
+          sed -i 's/android:icon="@mipmap\/ic_launcher"/android:icon="@mipmap\/ic_launcher"/' "$MANIFEST"
+
+          echo "Launcher icon configured."
+
+      # 16. Analyze Flutter Code
       - name: Analyze Code
         run: |
           flutter analyze
 
-      # 15. Build Release APK
+      # 17. Build Release APK
       - name: Build APK
         run: |
           flutter build apk --release
 
-      # 16. Upload APK
+      # 18. Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
