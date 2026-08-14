@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const Color primaryBlue = Color(0xff5963A5);
@@ -56,12 +57,10 @@ class FirebaseErrorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       home: Scaffold(
-        backgroundColor: backgroundColor,
         body: SafeArea(
           child: Center(
-            child: SingleChildScrollView(
+            child: Padding(
               padding: const EdgeInsets.all(25),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -83,13 +82,6 @@ class FirebaseErrorApp extends StatelessWidget {
                   Text(
                     error,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 15),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'google-services.json और Firebase configuration check करें।',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey),
                   ),
                 ],
               ),
@@ -167,9 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    setState(() {
-      loading = true;
-    });
+    setState(() => loading = true);
 
     try {
       final credential =
@@ -194,46 +184,36 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (mounted) {
           showMessage(
-            'पहले अपने Email को verify करें। Verification link आपके Email पर भेजा गया है।',
+            'पहले Email verification पूरा करें।',
           );
         }
-
-        return;
       }
     } on FirebaseAuthException catch (e) {
-      showMessage(getAuthError(e.code));
-    } catch (e) {
+      showMessage(authError(e.code));
+    } catch (_) {
       showMessage('Login में समस्या हुई');
     } finally {
       if (mounted) {
-        setState(() {
-          loading = false;
-        });
+        setState(() => loading = false);
       }
     }
   }
 
-  String getAuthError(String code) {
+  String authError(String code) {
     switch (code) {
       case 'invalid-email':
         return 'Email सही नहीं है';
-
       case 'user-not-found':
         return 'यह Email registered नहीं है';
-
       case 'wrong-password':
       case 'invalid-credential':
         return 'Email या Password गलत है';
-
       case 'user-disabled':
         return 'यह account बंद कर दिया गया है';
-
       case 'too-many-requests':
-        return 'बहुत ज्यादा attempts हुए हैं। थोड़ी देर बाद कोशिश करें।';
-
+        return 'बहुत ज्यादा attempts हुए हैं';
       case 'network-request-failed':
         return 'Internet connection check करें';
-
       default:
         return 'Login failed: $code';
     }
@@ -243,9 +223,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -254,12 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            32,
-            55,
-            32,
-            35,
-          ),
+          padding: const EdgeInsets.fromLTRB(32, 55, 32, 35),
           child: Column(
             children: [
               const Icon(
@@ -267,9 +240,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 size: 95,
                 color: primaryBlue,
               ),
-
               const SizedBox(height: 20),
-
               const Text(
                 'SR STUDIES',
                 style: TextStyle(
@@ -277,9 +248,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
               const SizedBox(height: 8),
-
               const Text(
                 'Learn • Practice • Succeed',
                 style: TextStyle(
@@ -287,18 +256,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: Colors.grey,
                 ),
               ),
-
               const SizedBox(height: 55),
-
               AppTextField(
                 controller: emailController,
                 hint: 'Email',
                 icon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
               ),
-
               const SizedBox(height: 20),
-
               AppTextField(
                 controller: passwordController,
                 hint: 'Password',
@@ -317,9 +282,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
               ),
-
               const SizedBox(height: 8),
-
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
@@ -327,7 +290,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const ForgotPasswordScreen(),
+                        builder: (_) =>
+                            const ForgotPasswordScreen(),
                       ),
                     );
                   },
@@ -340,9 +304,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 15),
-
               SizedBox(
                 width: double.infinity,
                 height: 62,
@@ -368,9 +330,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                 ),
               ),
-
               const SizedBox(height: 25),
-
               TextButton(
                 onPressed: () {
                   Navigator.push(
@@ -429,18 +389,10 @@ class _SignupScreenState extends State<SignupScreen> {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
 
-    if (name.isEmpty) {
-      showMessage('Student Name भरें');
-      return;
-    }
-
-    if (email.isEmpty) {
-      showMessage('Email भरें');
-      return;
-    }
-
-    if (password.isEmpty) {
-      showMessage('Password भरें');
+    if (name.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty) {
+      showMessage('Name, Email और Password भरें');
       return;
     }
 
@@ -451,9 +403,7 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    setState(() {
-      loading = true;
-    });
+    setState(() => loading = true);
 
     try {
       final credential =
@@ -466,7 +416,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
       if (user != null) {
         await user.updateDisplayName(name);
-
         await user.sendEmailVerification();
       }
 
@@ -476,60 +425,45 @@ class _SignupScreenState extends State<SignupScreen> {
 
       await showDialog<void>(
         context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('Account Created'),
-            content: const Text(
-              'आपका account बन गया है।\n\n'
-              'आपके Email पर verification link भेजा गया है। '
-              'Email खोलकर verification पूरा करें, फिर Login करें।',
+        builder: (_) => AlertDialog(
+          title: const Text('Account Created'),
+          content: const Text(
+            'आपके Email पर verification link भेजा गया है। '
+            'Email verify करने के बाद Login करें।',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
+          ],
+        ),
       );
 
       if (mounted) {
         Navigator.pop(context);
       }
     } on FirebaseAuthException catch (e) {
-      showMessage(getSignupError(e.code));
-    } catch (e) {
+      showMessage(signupError(e.code));
+    } catch (_) {
       showMessage('Account बनाने में समस्या हुई');
     } finally {
       if (mounted) {
-        setState(() {
-          loading = false;
-        });
+        setState(() => loading = false);
       }
     }
   }
 
-  String getSignupError(String code) {
+  String signupError(String code) {
     switch (code) {
       case 'email-already-in-use':
         return 'यह Email पहले से registered है';
-
       case 'invalid-email':
         return 'Email सही नहीं है';
-
       case 'weak-password':
         return 'Password बहुत कमजोर है';
-
       case 'operation-not-allowed':
-        return 'Firebase में Email/Password login enable करें';
-
-      case 'network-request-failed':
-        return 'Internet connection check करें';
-
+        return 'Firebase में Email/Password enable करें';
       default:
         return 'Signup failed: $code';
     }
@@ -539,9 +473,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -549,117 +481,75 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+        title: const Text('Create Account'),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            32,
-            10,
-            32,
-            35,
-          ),
-          child: Column(
-            children: [
-              const Icon(
-                Icons.school,
-                size: 80,
-                color: primaryBlue,
-              ),
-
-              const SizedBox(height: 15),
-
-              const Text(
-                'Create Account',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(30),
+        child: Column(
+          children: [
+            const Icon(
+              Icons.school,
+              size: 80,
+              color: primaryBlue,
+            ),
+            const SizedBox(height: 20),
+            AppTextField(
+              controller: nameController,
+              hint: 'Student Name',
+              icon: Icons.person_outline,
+              textCapitalization:
+                  TextCapitalization.words,
+            ),
+            const SizedBox(height: 18),
+            AppTextField(
+              controller: emailController,
+              hint: 'Email',
+              icon: Icons.email_outlined,
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 18),
+            AppTextField(
+              controller: passwordController,
+              hint: 'Password',
+              icon: Icons.lock_outline,
+              obscureText: obscurePassword,
+              suffix: IconButton(
+                icon: Icon(
+                  obscurePassword
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
                 ),
+                onPressed: () {
+                  setState(() {
+                    obscurePassword =
+                        !obscurePassword;
+                  });
+                },
               ),
-
-              const SizedBox(height: 35),
-
-              AppTextField(
-                controller: nameController,
-                hint: 'Student Name',
-                icon: Icons.person_outline,
-                textCapitalization: TextCapitalization.words,
-              ),
-
-              const SizedBox(height: 18),
-
-              AppTextField(
-                controller: emailController,
-                hint: 'Email',
-                icon: Icons.email_outlined,
-                keyboardType: TextInputType.emailAddress,
-              ),
-
-              const SizedBox(height: 18),
-
-              AppTextField(
-                controller: passwordController,
-                hint: 'Password',
-                icon: Icons.lock_outline,
-                obscureText: obscurePassword,
-                suffix: IconButton(
-                  icon: Icon(
-                    obscurePassword
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      obscurePassword = !obscurePassword;
-                    });
-                  },
+            ),
+            const SizedBox(height: 28),
+            SizedBox(
+              width: double.infinity,
+              height: 60,
+              child: ElevatedButton(
+                onPressed: loading ? null : signup,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryBlue,
+                  foregroundColor: Colors.white,
                 ),
-              ),
-
-              const SizedBox(height: 28),
-
-              SizedBox(
-                width: double.infinity,
-                height: 62,
-                child: ElevatedButton(
-                  onPressed: loading ? null : signup,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryBlue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  child: loading
-                      ? const CircularProgressIndicator(
-                          color: Colors.white,
-                        )
-                      : const Text(
-                          'CREATE ACCOUNT',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                child: loading
+                    ? const CircularProgressIndicator(
+                        color: Colors.white,
+                      )
+                    : const Text(
+                        'CREATE ACCOUNT',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
                         ),
-                ),
+                      ),
               ),
-
-              const SizedBox(height: 20),
-
-              const Text(
-                'Verification link आपके Email पर भेजा जाएगा।',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -698,65 +588,25 @@ class _ForgotPasswordScreenState
       return;
     }
 
-    setState(() {
-      loading = true;
-    });
+    setState(() => loading = true);
 
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(
-        email: email,
-      );
+      await FirebaseAuth.instance
+          .sendPasswordResetEmail(email: email);
 
-      if (!mounted) return;
-
-      await showDialog<void>(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('Email Sent'),
-            content: const Text(
-              'Password reset link आपके Email पर भेज दिया गया है।',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
+      if (mounted) {
+        showMessage(
+          'Password reset link Email पर भेज दिया गया है।',
+        );
+      }
     } on FirebaseAuthException catch (e) {
       showMessage(
-        getResetError(e.code),
+        'Password reset failed: ${e.code}',
       );
-    } catch (e) {
-      showMessage('Password reset में समस्या हुई');
     } finally {
       if (mounted) {
-        setState(() {
-          loading = false;
-        });
+        setState(() => loading = false);
       }
-    }
-  }
-
-  String getResetError(String code) {
-    switch (code) {
-      case 'invalid-email':
-        return 'Email सही नहीं है';
-
-      case 'user-not-found':
-        return 'यह Email registered नहीं है';
-
-      case 'too-many-requests':
-        return 'बहुत ज्यादा requests हुई हैं। बाद में कोशिश करें।';
-
-      case 'network-request-failed':
-        return 'Internet connection check करें';
-
-      default:
-        return 'Password reset failed: $code';
     }
   }
 
@@ -764,9 +614,7 @@ class _ForgotPasswordScreenState
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -776,20 +624,17 @@ class _ForgotPasswordScreenState
       appBar: AppBar(
         title: const Text('Forgot Password'),
       ),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(30),
         child: Column(
           children: [
-            const SizedBox(height: 25),
-
+            const SizedBox(height: 30),
             const Icon(
               Icons.lock_reset,
               size: 85,
               color: primaryBlue,
             ),
-
             const SizedBox(height: 25),
-
             const Text(
               'Reset Password',
               style: TextStyle(
@@ -797,18 +642,15 @@ class _ForgotPasswordScreenState
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 35),
-
             AppTextField(
               controller: emailController,
               hint: 'Registered Email',
               icon: Icons.email_outlined,
-              keyboardType: TextInputType.emailAddress,
+              keyboardType:
+                  TextInputType.emailAddress,
             ),
-
             const SizedBox(height: 25),
-
             SizedBox(
               width: double.infinity,
               height: 60,
@@ -818,9 +660,6 @@ class _ForgotPasswordScreenState
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryBlue,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
                 ),
                 child: loading
                     ? const CircularProgressIndicator(
@@ -857,7 +696,7 @@ class _MainNavigationState
     extends State<MainNavigation> {
   int currentIndex = 0;
 
-  final List<Widget> pages = const [
+  final pages = const [
     HomePage(),
     SubjectsPage(),
     PracticePage(),
@@ -912,7 +751,7 @@ class _MainNavigationState
 }
 
 // ======================================================
-// HOME PAGE
+// HOME
 // ======================================================
 
 class HomePage extends StatelessWidget {
@@ -930,28 +769,18 @@ class HomePage extends StatelessWidget {
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          18,
-          12,
-          18,
-          25,
-        ),
+        padding: const EdgeInsets.all(18),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
           children: [
-            // ------------------------------------------------
-            // WELCOME BOX
-            // ------------------------------------------------
-
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 25,
-                vertical: 22,
-              ),
+              padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
                 color: primaryBlue,
-                borderRadius: BorderRadius.circular(28),
+                borderRadius:
+                    BorderRadius.circular(26),
               ),
               child: const Column(
                 crossAxisAlignment:
@@ -965,22 +794,18 @@ class HomePage extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 12),
+                  SizedBox(height: 10),
                   Text(
                     'अपने subjects चुनें और अपनी preparation शुरू करें।',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w500,
-                      height: 1.35,
+                      fontSize: 15,
                     ),
                   ),
                 ],
               ),
             ),
-
-            const SizedBox(height: 28),
-
+            const SizedBox(height: 25),
             const Text(
               'Subjects',
               style: TextStyle(
@@ -988,71 +813,33 @@ class HomePage extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 18),
-
-            const GroupTitle(
-              icon: Icons.menu_book_outlined,
+            const SubjectSection(
               title: 'ARTS & SOCIAL SCIENCE',
+              icon: Icons.menu_book_outlined,
+              subjects: [
+                ['History', Icons.history_edu],
+                ['Economics', Icons.currency_rupee],
+                ['Geography', Icons.public],
+                ['Polity', Icons.account_balance],
+              ],
             ),
-
-            SubjectCard(
-              title: 'History Foundation',
-              icon: Icons.history_edu,
-            ),
-
-            SubjectCard(
-              title: 'Economics Foundation',
-              icon: Icons.currency_rupee,
-            ),
-
-            SubjectCard(
-              title: 'Geography Foundation',
-              icon: Icons.public,
-            ),
-
-            SubjectCard(
-              title: 'Polity Foundation',
-              icon: Icons.account_balance,
-            ),
-
-            const SizedBox(height: 20),
-
-            const GroupTitle(
-              icon: Icons.science_outlined,
+            const SubjectSection(
               title: 'SCIENCE',
+              icon: Icons.science_outlined,
+              subjects: [
+                ['Biology', Icons.biotech_outlined],
+                ['Chemistry', Icons.science],
+                ['Physics', Icons.bolt_outlined],
+              ],
             ),
-
-            SubjectCard(
-              title: 'Biology Foundation',
-              icon: Icons.biotech_outlined,
-            ),
-
-            SubjectCard(
-              title: 'Chemistry Foundation',
-              icon: Icons.science,
-            ),
-
-            SubjectCard(
-              title: 'Physics Foundation',
-              icon: Icons.bolt_outlined,
-            ),
-
-            const SizedBox(height: 20),
-
-            const GroupTitle(
-              icon: Icons.map_outlined,
+            const SubjectSection(
               title: 'MAPS',
-            ),
-
-            SubjectCard(
-              title: 'World Map',
-              icon: Icons.public,
-            ),
-
-            SubjectCard(
-              title: 'Indian Map',
-              icon: Icons.map,
+              icon: Icons.map_outlined,
+              subjects: [
+                ['World Map', Icons.public],
+                ['Indian Map', Icons.map],
+              ],
             ),
           ],
         ),
@@ -1062,7 +849,7 @@ class HomePage extends StatelessWidget {
 }
 
 // ======================================================
-// SUBJECTS PAGE
+// SUBJECTS
 // ======================================================
 
 class SubjectsPage extends StatelessWidget {
@@ -1081,69 +868,33 @@ class SubjectsPage extends StatelessWidget {
       ),
       body: ListView(
         padding: const EdgeInsets.all(18),
-        children: [
-          const GroupTitle(
-            icon: Icons.menu_book_outlined,
+        children: const [
+          SubjectSection(
             title: 'ARTS & SOCIAL SCIENCE',
+            icon: Icons.menu_book_outlined,
+            subjects: [
+              ['History', Icons.history_edu],
+              ['Economics', Icons.currency_rupee],
+              ['Geography', Icons.public],
+              ['Polity', Icons.account_balance],
+            ],
           ),
-
-          SubjectCard(
-            title: 'History Foundation',
-            icon: Icons.history_edu,
-          ),
-
-          SubjectCard(
-            title: 'Economics Foundation',
-            icon: Icons.currency_rupee,
-          ),
-
-          SubjectCard(
-            title: 'Geography Foundation',
-            icon: Icons.public,
-          ),
-
-          SubjectCard(
-            title: 'Polity Foundation',
-            icon: Icons.account_balance,
-          ),
-
-          const SizedBox(height: 20),
-
-          const GroupTitle(
-            icon: Icons.science_outlined,
+          SubjectSection(
             title: 'SCIENCE',
+            icon: Icons.science_outlined,
+            subjects: [
+              ['Biology', Icons.biotech_outlined],
+              ['Chemistry', Icons.science],
+              ['Physics', Icons.bolt_outlined],
+            ],
           ),
-
-          SubjectCard(
-            title: 'Biology Foundation',
-            icon: Icons.biotech_outlined,
-          ),
-
-          SubjectCard(
-            title: 'Chemistry Foundation',
-            icon: Icons.science,
-          ),
-
-          SubjectCard(
-            title: 'Physics Foundation',
-            icon: Icons.bolt_outlined,
-          ),
-
-          const SizedBox(height: 20),
-
-          const GroupTitle(
-            icon: Icons.map_outlined,
+          SubjectSection(
             title: 'MAPS',
-          ),
-
-          SubjectCard(
-            title: 'World Map',
-            icon: Icons.public,
-          ),
-
-          SubjectCard(
-            title: 'Indian Map',
-            icon: Icons.map,
+            icon: Icons.map_outlined,
+            subjects: [
+              ['World Map', Icons.public],
+              ['Indian Map', Icons.map],
+            ],
           ),
         ],
       ),
@@ -1152,154 +903,39 @@ class SubjectsPage extends StatelessWidget {
 }
 
 // ======================================================
-// PRACTICE PAGE
+// SUBJECT SECTION
 // ======================================================
 
-class PracticePage extends StatelessWidget {
-  const PracticePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Practice',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-      body: const Center(
-        child: Padding(
-          padding: EdgeInsets.all(25),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.quiz_outlined,
-                size: 80,
-                color: primaryBlue,
-              ),
-              SizedBox(height: 20),
-              Text(
-                'Practice Section',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 10),
-              Text(
-                'Practice questions जल्द उपलब्ध होंगे।',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 16,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ======================================================
-// NOTES PAGE
-// ======================================================
-
-class NotesPage extends StatelessWidget {
-  const NotesPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Notes',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-      body: const Center(
-        child: Padding(
-          padding: EdgeInsets.all(25),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.folder_outlined,
-                size: 80,
-                color: primaryBlue,
-              ),
-              SizedBox(height: 20),
-              Text(
-                'Notes Section',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 10),
-              Text(
-                'Study notes जल्द उपलब्ध होंगे।',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 16,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ======================================================
-// GROUP TITLE
-// ======================================================
-
-class GroupTitle extends StatelessWidget {
-  final IconData icon;
+class SubjectSection extends StatelessWidget {
   final String title;
+  final IconData icon;
+  final List<List<dynamic>> subjects;
 
-  const GroupTitle({
+  const SubjectSection({
     super.key,
-    required this.icon,
     required this.title,
+    required this.icon,
+    required this.subjects,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(
-        left: 4,
-        bottom: 10,
-      ),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: primaryBlue,
-            size: 24,
+    return Column(
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
+      children: [
+        GroupTitle(
+          icon: icon,
+          title: title,
+        ),
+        ...subjects.map(
+          (item) => SubjectCard(
+            title: item[0] as String,
+            icon: item[1] as IconData,
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 19,
-                fontWeight: FontWeight.bold,
-                color: primaryBlue,
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 15),
+      ],
     );
   }
 }
@@ -1318,18 +954,28 @@ class SubjectCard extends StatelessWidget {
     required this.icon,
   });
 
+  String firestoreSubjectName() {
+    return title
+        .toLowerCase()
+        .replaceAll(' ', '_');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       height: 65,
-      margin: const EdgeInsets.only(bottom: 10),
+      margin:
+          const EdgeInsets.only(bottom: 10),
       child: ElevatedButton(
         onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                '$title अभी जल्द उपलब्ध होगा',
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => SubjectVideosPage(
+                subjectName: title,
+                firestoreName:
+                    firestoreSubjectName(),
               ),
             ),
           );
@@ -1338,11 +984,9 @@ class SubjectCard extends StatelessWidget {
           backgroundColor: Colors.white,
           foregroundColor: Colors.black87,
           elevation: 1,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-          ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(17),
+            borderRadius:
+                BorderRadius.circular(17),
           ),
         ),
         child: Row(
@@ -1351,18 +995,17 @@ class SubjectCard extends StatelessWidget {
               width: 43,
               height: 43,
               decoration: BoxDecoration(
-                color: primaryBlue.withOpacity(0.10),
-                borderRadius: BorderRadius.circular(13),
+                color:
+                    primaryBlue.withOpacity(0.10),
+                borderRadius:
+                    BorderRadius.circular(13),
               ),
               child: Icon(
                 icon,
                 color: primaryBlue,
-                size: 24,
               ),
             ),
-
             const SizedBox(width: 14),
-
             Expanded(
               child: Text(
                 title,
@@ -1372,7 +1015,6 @@ class SubjectCard extends StatelessWidget {
                 ),
               ),
             ),
-
             const Icon(
               Icons.arrow_forward_ios,
               size: 15,
@@ -1382,6 +1024,360 @@ class SubjectCard extends StatelessWidget {
       ),
     );
   }
+}
+
+// ======================================================
+// SUBJECT VIDEOS PAGE
+// ======================================================
+
+class SubjectVideosPage extends StatelessWidget {
+  final String subjectName;
+  final String firestoreName;
+
+  const SubjectVideosPage({
+    super.key,
+    required this.subjectName,
+    required this.firestoreName,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final videosStream = FirebaseFirestore.instance
+        .collection('subjects')
+        .doc(firestoreName)
+        .collection('videos')
+        .orderBy(
+          'createdAt',
+          descending: true,
+        )
+        .snapshots();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          subjectName,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: videosStream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState ==
+              ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: primaryBlue,
+              ),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(25),
+                child: Text(
+                  'Videos load नहीं हो सके।\n\n'
+                  '${snapshot.error}',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          }
+
+          final docs =
+              snapshot.data?.docs ?? [];
+
+          if (docs.isEmpty) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(25),
+                child: Column(
+                  mainAxisAlignment:
+                      MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.video_library_outlined,
+                      size: 75,
+                      color: primaryBlue,
+                    ),
+                    SizedBox(height: 20),
+                    Text(
+                      'अभी कोई video उपलब्ध नहीं है',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(18),
+            itemCount: docs.length,
+            itemBuilder: (context, index) {
+              final data =
+                  docs[index].data()
+                      as Map<String, dynamic>;
+
+              return VideoCard(
+                title:
+                    data['title'] ??
+                    'Study Video',
+                description:
+                    data['description'] ??
+                    '',
+                videoUrl:
+                    data['videoUrl'] ?? '',
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ======================================================
+// VIDEO CARD
+// ======================================================
+
+class VideoCard extends StatelessWidget {
+  final String title;
+  final String description;
+  final String videoUrl;
+
+  const VideoCard({
+    super.key,
+    required this.title,
+    required this.description,
+    required this.videoUrl,
+  });
+
+  Future<void> openVideo(
+    BuildContext context,
+  ) async {
+    if (videoUrl.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+        const SnackBar(
+          content:
+              Text('Video अभी उपलब्ध नहीं है'),
+        ),
+      );
+      return;
+    }
+
+    final uri = Uri.tryParse(videoUrl);
+
+    if (uri == null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+        const SnackBar(
+          content: Text('Video link गलत है'),
+        ),
+      );
+      return;
+    }
+
+    try {
+      final opened = await launchUrl(
+        uri,
+        mode: LaunchMode.inAppBrowserView,
+      );
+
+      if (!opened && context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(
+          const SnackBar(
+            content:
+                Text('Video खोलने में समस्या हुई'),
+          ),
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(
+          const SnackBar(
+            content:
+                Text('Video खोलने में समस्या हुई'),
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin:
+          const EdgeInsets.only(bottom: 14),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.circular(18),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color:
+                        primaryBlue.withOpacity(
+                      0.10,
+                    ),
+                    borderRadius:
+                        BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    Icons.play_circle_outline,
+                    color: primaryBlue,
+                    size: 30,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight:
+                          FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (description.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(
+                description,
+                style: const TextStyle(
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+            const SizedBox(height: 15),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed:
+                    () => openVideo(context),
+                icon: const Icon(
+                  Icons.play_arrow,
+                ),
+                label: const Text(
+                  'WATCH VIDEO',
+                  style: TextStyle(
+                    fontWeight:
+                        FontWeight.bold,
+                  ),
+                ),
+                style:
+                    ElevatedButton.styleFrom(
+                  backgroundColor:
+                      primaryBlue,
+                  foregroundColor:
+                      Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ======================================================
+// PRACTICE
+// ======================================================
+
+class PracticePage extends StatelessWidget {
+  const PracticePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      appBar: _SimpleAppBar(
+        title: 'Practice',
+      ),
+      body: Center(
+        child: Text(
+          'Practice questions जल्द उपलब्ध होंगे।',
+          style: TextStyle(
+            fontSize: 18,
+            color: Colors.grey,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ======================================================
+// NOTES
+// ======================================================
+
+class NotesPage extends StatelessWidget {
+  const NotesPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      appBar: _SimpleAppBar(
+        title: 'Notes',
+      ),
+      body: Center(
+        child: Text(
+          'Study notes जल्द उपलब्ध होंगे।',
+          style: TextStyle(
+            fontSize: 18,
+            color: Colors.grey,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SimpleAppBar extends StatelessWidget
+    implements PreferredSizeWidget {
+  final String title;
+
+  const _SimpleAppBar({
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize =>
+      const Size.fromHeight(kToolbarHeight);
 }
 
 // ======================================================
@@ -1398,7 +1394,8 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState
     extends State<ProfileScreen> {
-  final nameController = TextEditingController();
+  final nameController =
+      TextEditingController();
 
   bool saving = false;
 
@@ -1406,9 +1403,10 @@ class _ProfileScreenState
   void initState() {
     super.initState();
 
-    final user = FirebaseAuth.instance.currentUser;
-
-    nameController.text = user?.displayName ?? '';
+    nameController.text =
+        FirebaseAuth.instance.currentUser
+                ?.displayName ??
+            '';
   }
 
   @override
@@ -1418,19 +1416,19 @@ class _ProfileScreenState
   }
 
   Future<void> changeName() async {
-    final name = nameController.text.trim();
+    final name =
+        nameController.text.trim();
 
     if (name.isEmpty) {
       showMessage('Name खाली नहीं हो सकता');
       return;
     }
 
-    setState(() {
-      saving = true;
-    });
+    setState(() => saving = true);
 
     try {
-      final user = FirebaseAuth.instance.currentUser;
+      final user =
+          FirebaseAuth.instance.currentUser;
 
       if (user == null) {
         showMessage('User login नहीं है');
@@ -1441,16 +1439,17 @@ class _ProfileScreenState
       await user.reload();
 
       if (mounted) {
-        showMessage('Name successfully updated');
-        setState(() {});
+        showMessage(
+          'Name successfully updated',
+        );
       }
-    } catch (e) {
-      showMessage('Name update नहीं हो पाया');
+    } catch (_) {
+      showMessage(
+        'Name update नहीं हो पाया',
+      );
     } finally {
       if (mounted) {
-        setState(() {
-          saving = false;
-        });
+        setState(() => saving = false);
       }
     }
   }
@@ -1462,16 +1461,16 @@ class _ProfileScreenState
   void showMessage(String message) {
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
+    ScaffoldMessenger.of(context)
+        .showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    final user =
+        FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       appBar: AppBar(
@@ -1495,9 +1494,7 @@ class _ProfileScreenState
                 color: Colors.white,
               ),
             ),
-
             const SizedBox(height: 18),
-
             const Text(
               'Student Profile',
               style: TextStyle(
@@ -1505,9 +1502,7 @@ class _ProfileScreenState
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 28),
-
             AppTextField(
               controller: nameController,
               hint: 'Student Name',
@@ -1515,32 +1510,26 @@ class _ProfileScreenState
               textCapitalization:
                   TextCapitalization.words,
             ),
-
             const SizedBox(height: 12),
-
             Text(
               user?.email ?? '',
-              textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 15,
                 color: Colors.grey,
               ),
             ),
-
             const SizedBox(height: 20),
-
             SizedBox(
               width: double.infinity,
               height: 55,
               child: ElevatedButton(
                 onPressed:
                     saving ? null : changeName,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryBlue,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
-                  ),
+                style:
+                    ElevatedButton.styleFrom(
+                  backgroundColor:
+                      primaryBlue,
+                  foregroundColor:
+                      Colors.white,
                 ),
                 child: saving
                     ? const CircularProgressIndicator(
@@ -1548,15 +1537,10 @@ class _ProfileScreenState
                       )
                     : const Text(
                         'CHANGE NAME',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
                       ),
               ),
             ),
-
             const SizedBox(height: 35),
-
             const Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -1567,48 +1551,44 @@ class _ProfileScreenState
                 ),
               ),
             ),
-
             const SizedBox(height: 15),
-
             SocialButton(
-              icon: Icons.play_circle_fill,
+              icon:
+                  Icons.play_circle_fill,
               title: 'YouTube',
               url:
                   'https://youtube.com/@rceditor999?si=4009XQKBUTsndL2u',
             ),
-
             SocialButton(
               icon: Icons.camera_alt,
               title: 'Instagram',
               url:
                   'https://www.instagram.com/rceditor999?igsh=NXJkdTg5dHBheG96',
             ),
-
             SocialButton(
               icon: Icons.send,
               title: 'Telegram',
               url:
                   'https://t.me/RCEDITOR999',
             ),
-
             const SizedBox(height: 25),
-
             SizedBox(
               width: double.infinity,
               height: 55,
               child: OutlinedButton.icon(
                 onPressed: logout,
-                icon: const Icon(Icons.logout),
+                icon: const Icon(
+                  Icons.logout,
+                ),
                 label: const Text(
                   'LOGOUT',
                   style: TextStyle(
-                    fontWeight: FontWeight.bold,
+                    fontWeight:
+                        FontWeight.bold,
                   ),
                 ),
               ),
             ),
-
-            const SizedBox(height: 25),
           ],
         ),
       ),
@@ -1638,27 +1618,18 @@ class SocialButton extends StatelessWidget {
     final uri = Uri.parse(url);
 
     try {
-      final opened = await launchUrl(
+      await launchUrl(
         uri,
-        mode: LaunchMode.externalApplication,
+        mode:
+            LaunchMode.externalApplication,
       );
-
-      if (!opened && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '$title खोलने में समस्या हुई',
-            ),
-          ),
-        );
-      }
-    } catch (e) {
+    } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context)
+            .showSnackBar(
           SnackBar(
-            content: Text(
-              '$title खोलने में समस्या हुई',
-            ),
+            content:
+                Text('$title खोलने में समस्या हुई'),
           ),
         );
       }
@@ -1669,18 +1640,20 @@ class SocialButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 10),
+      margin:
+          const EdgeInsets.only(bottom: 10),
       child: Material(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius:
+            BorderRadius.circular(16),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () => openLink(context),
+          borderRadius:
+              BorderRadius.circular(16),
+          onTap:
+              () => openLink(context),
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
+            padding:
+                const EdgeInsets.all(16),
             child: Row(
               children: [
                 Icon(
@@ -1688,22 +1661,20 @@ class SocialButton extends StatelessWidget {
                   size: 28,
                   color: primaryBlue,
                 ),
-
                 const SizedBox(width: 15),
-
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(
+                    style:
+                        const TextStyle(
                       fontSize: 17,
-                      fontWeight: FontWeight.bold,
+                      fontWeight:
+                          FontWeight.bold,
                     ),
                   ),
                 ),
-
                 const Icon(
                   Icons.open_in_new,
-                  size: 20,
                 ),
               ],
             ),
@@ -1715,7 +1686,55 @@ class SocialButton extends StatelessWidget {
 }
 
 // ======================================================
-// COMMON TEXT FIELD
+// GROUP TITLE
+// ======================================================
+
+class GroupTitle extends StatelessWidget {
+  final IconData icon;
+  final String title;
+
+  const GroupTitle({
+    super.key,
+    required this.icon,
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding:
+          const EdgeInsets.only(
+        left: 4,
+        bottom: 10,
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: primaryBlue,
+            size: 24,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              title,
+              style:
+                  const TextStyle(
+                fontSize: 19,
+                fontWeight:
+                    FontWeight.bold,
+                color: primaryBlue,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ======================================================
+// TEXT FIELD
 // ======================================================
 
 class AppTextField extends StatelessWidget {
@@ -1745,7 +1764,8 @@ class AppTextField extends StatelessWidget {
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
-      textCapitalization: textCapitalization,
+      textCapitalization:
+          textCapitalization,
       decoration: InputDecoration(
         hintText: hint,
         prefixIcon: Icon(icon),
@@ -1753,23 +1773,31 @@ class AppTextField extends StatelessWidget {
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide.none,
+          borderRadius:
+              BorderRadius.circular(18),
+          borderSide:
+              BorderSide.none,
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+        enabledBorder:
+            OutlineInputBorder(
+          borderRadius:
+              BorderRadius.circular(18),
           borderSide: BorderSide(
             color: Colors.grey.shade300,
           ),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(
+        focusedBorder:
+            OutlineInputBorder(
+          borderRadius:
+              BorderRadius.circular(18),
+          borderSide:
+              const BorderSide(
             color: primaryBlue,
             width: 2,
           ),
         ),
-        contentPadding: const EdgeInsets.symmetric(
+        contentPadding:
+            const EdgeInsets.symmetric(
           vertical: 18,
           horizontal: 18,
         ),
