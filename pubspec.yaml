@@ -28,5 +28,20 @@ dev_dependencies:
 
   flutter_lints: ^6.0.0
 
+  # Custom App Launcher Icon
+  flutter_launcher_icons: ^0.14.4
+
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/icon/app_icon.png
+
+# ============================================================
+# APP ICON
+# ============================================================
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon/app_icon.png"
