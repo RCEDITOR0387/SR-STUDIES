@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-const Color primaryBlue = Color(0xff5963A5);
-const Color backgroundColor = Color(0xffF6F7FC);
+const Color primaryBlue = Color(0xFF5963A5);
+const Color backgroundColor = Color(0xFFF6F7FC);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,9 +18,9 @@ Future<void> main() async {
   }
 }
 
-// ======================================================
+// ============================================================
 // APP
-// ======================================================
+// ============================================================
 
 class SRStudiesApp extends StatelessWidget {
   const SRStudiesApp({super.key});
@@ -36,15 +36,21 @@ class SRStudiesApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(
           seedColor: primaryBlue,
         ),
+        appBarTheme: const AppBarTheme(
+          centerTitle: false,
+          backgroundColor: backgroundColor,
+          foregroundColor: Colors.black87,
+          elevation: 0,
+        ),
       ),
       home: const AuthGate(),
     );
   }
 }
 
-// ======================================================
+// ============================================================
 // FIREBASE ERROR
-// ======================================================
+// ============================================================
 
 class FirebaseErrorApp extends StatelessWidget {
   final String error;
@@ -62,29 +68,31 @@ class FirebaseErrorApp extends StatelessWidget {
         body: SafeArea(
           child: Center(
             child: Padding(
-              padding: const EdgeInsets.all(25),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 85,
-                    color: Colors.red,
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Firebase Error',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+              padding: const EdgeInsets.all(24),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 80,
+                      color: Colors.red,
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    error,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Firebase Error',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      error,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -94,9 +102,9 @@ class FirebaseErrorApp extends StatelessWidget {
   }
 }
 
-// ======================================================
+// ============================================================
 // AUTH GATE
-// ======================================================
+// ============================================================
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
@@ -126,9 +134,9 @@ class AuthGate extends StatelessWidget {
   }
 }
 
-// ======================================================
+// ============================================================
 // LOGIN
-// ======================================================
+// ============================================================
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -153,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> login() async {
     final email = emailController.text.trim();
-    final password = passwordController.text.trim();
+    final password = passwordController.text;
 
     if (email.isEmpty || password.isEmpty) {
       showMessage('Email और Password दोनों भरें');
@@ -191,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } on FirebaseAuthException catch (e) {
       showMessage(authError(e.code));
-    } catch (_) {
+    } catch (e) {
       showMessage('Login में समस्या हुई');
     } finally {
       if (mounted) {
@@ -204,23 +212,17 @@ class _LoginScreenState extends State<LoginScreen> {
     switch (code) {
       case 'invalid-email':
         return 'Email सही नहीं है';
-
       case 'user-not-found':
         return 'यह Email registered नहीं है';
-
       case 'wrong-password':
       case 'invalid-credential':
         return 'Email या Password गलत है';
-
       case 'user-disabled':
         return 'यह account बंद कर दिया गया है';
-
       case 'too-many-requests':
         return 'बहुत ज्यादा attempts हुए हैं';
-
       case 'network-request-failed':
         return 'Internet connection check करें';
-
       default:
         return 'Login failed: $code';
     }
@@ -230,9 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -241,24 +241,19 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            32,
-            55,
-            32,
-            35,
-          ),
+          padding: const EdgeInsets.fromLTRB(30, 50, 30, 30),
           child: Column(
             children: [
               const Icon(
                 Icons.school,
-                size: 95,
+                size: 90,
                 color: primaryBlue,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
               const Text(
                 'SR STUDIES',
                 style: TextStyle(
-                  fontSize: 38,
+                  fontSize: 36,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -266,37 +261,36 @@ class _LoginScreenState extends State<LoginScreen> {
               const Text(
                 'Learn • Practice • Succeed',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 17,
                   color: Colors.grey,
                 ),
               ),
-              const SizedBox(height: 55),
+              const SizedBox(height: 45),
               AppTextField(
                 controller: emailController,
                 hint: 'Email',
                 icon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
               AppTextField(
                 controller: passwordController,
                 hint: 'Password',
                 icon: Icons.lock_outline,
                 obscureText: obscurePassword,
                 suffix: IconButton(
-                  icon: Icon(
-                    obscurePassword
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                  ),
                   onPressed: () {
                     setState(() {
                       obscurePassword = !obscurePassword;
                     });
                   },
+                  icon: Icon(
+                    obscurePassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                  ),
                 ),
               ),
-              const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
@@ -312,16 +306,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: const Text(
                     'Forgot Password?',
                     style: TextStyle(
-                      fontWeight: FontWeight.bold,
                       color: primaryBlue,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
-                height: 62,
+                height: 60,
                 child: ElevatedButton(
                   onPressed: loading ? null : login,
                   style: ElevatedButton.styleFrom(
@@ -338,13 +332,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       : const Text(
                           'LOGIN',
                           style: TextStyle(
-                            fontSize: 20,
+                            fontSize: 19,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                 ),
               ),
-              const SizedBox(height: 25),
+              const SizedBox(height: 20),
               TextButton(
                 onPressed: () {
                   Navigator.push(
@@ -357,9 +351,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: const Text(
                   'Create New Account',
                   style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
                     color: primaryBlue,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -371,9 +365,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-// ======================================================
+// ============================================================
 // SIGNUP
-// ======================================================
+// ============================================================
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -401,11 +395,9 @@ class _SignupScreenState extends State<SignupScreen> {
   Future<void> signup() async {
     final name = nameController.text.trim();
     final email = emailController.text.trim();
-    final password = passwordController.text.trim();
+    final password = passwordController.text;
 
-    if (name.isEmpty ||
-        email.isEmpty ||
-        password.isEmpty) {
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
       showMessage('Name, Email और Password भरें');
       return;
     }
@@ -431,6 +423,16 @@ class _SignupScreenState extends State<SignupScreen> {
       if (user != null) {
         await user.updateDisplayName(name);
         await user.sendEmailVerification();
+
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .set({
+          'uid': user.uid,
+          'name': name,
+          'email': email,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
       }
 
       await FirebaseAuth.instance.signOut();
@@ -459,7 +461,7 @@ class _SignupScreenState extends State<SignupScreen> {
       }
     } on FirebaseAuthException catch (e) {
       showMessage(signupError(e.code));
-    } catch (_) {
+    } catch (e) {
       showMessage('Account बनाने में समस्या हुई');
     } finally {
       if (mounted) {
@@ -472,16 +474,14 @@ class _SignupScreenState extends State<SignupScreen> {
     switch (code) {
       case 'email-already-in-use':
         return 'यह Email पहले से registered है';
-
       case 'invalid-email':
         return 'Email सही नहीं है';
-
       case 'weak-password':
         return 'Password बहुत कमजोर है';
-
       case 'operation-not-allowed':
         return 'Firebase में Email/Password enable करें';
-
+      case 'network-request-failed':
+        return 'Internet connection check करें';
       default:
         return 'Signup failed: $code';
     }
@@ -491,9 +491,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -504,12 +502,12 @@ class _SignupScreenState extends State<SignupScreen> {
         title: const Text('Create Account'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(30),
+        padding: const EdgeInsets.all(28),
         child: Column(
           children: [
             const Icon(
               Icons.school,
-              size: 80,
+              size: 75,
               color: primaryBlue,
             ),
             const SizedBox(height: 20),
@@ -517,16 +515,14 @@ class _SignupScreenState extends State<SignupScreen> {
               controller: nameController,
               hint: 'Student Name',
               icon: Icons.person_outline,
-              textCapitalization:
-                  TextCapitalization.words,
+              textCapitalization: TextCapitalization.words,
             ),
             const SizedBox(height: 18),
             AppTextField(
               controller: emailController,
               hint: 'Email',
               icon: Icons.email_outlined,
-              keyboardType:
-                  TextInputType.emailAddress,
+              keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 18),
             AppTextField(
@@ -535,23 +531,22 @@ class _SignupScreenState extends State<SignupScreen> {
               icon: Icons.lock_outline,
               obscureText: obscurePassword,
               suffix: IconButton(
+                onPressed: () {
+                  setState(() {
+                    obscurePassword = !obscurePassword;
+                  });
+                },
                 icon: Icon(
                   obscurePassword
                       ? Icons.visibility_off_outlined
                       : Icons.visibility_outlined,
                 ),
-                onPressed: () {
-                  setState(() {
-                    obscurePassword =
-                        !obscurePassword;
-                  });
-                },
               ),
             ),
             const SizedBox(height: 28),
             SizedBox(
               width: double.infinity,
-              height: 60,
+              height: 58,
               child: ElevatedButton(
                 onPressed: loading ? null : signup,
                 style: ElevatedButton.styleFrom(
@@ -577,9 +572,9 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 }
 
-// ======================================================
+// ============================================================
 // FORGOT PASSWORD
-// ======================================================
+// ============================================================
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -622,9 +617,9 @@ class _ForgotPasswordScreenState
         );
       }
     } on FirebaseAuthException catch (e) {
-      showMessage(
-        'Password reset failed: ${e.code}',
-      );
+      showMessage('Password reset failed: ${e.code}');
+    } catch (e) {
+      showMessage('Password reset में समस्या हुई');
     } finally {
       if (mounted) {
         setState(() => loading = false);
@@ -636,9 +631,7 @@ class _ForgotPasswordScreenState
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -648,39 +641,37 @@ class _ForgotPasswordScreenState
       appBar: AppBar(
         title: const Text('Forgot Password'),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(30),
         child: Column(
           children: [
             const SizedBox(height: 30),
             const Icon(
               Icons.lock_reset,
-              size: 85,
+              size: 80,
               color: primaryBlue,
             ),
-            const SizedBox(height: 25),
+            const SizedBox(height: 20),
             const Text(
               'Reset Password',
               style: TextStyle(
-                fontSize: 30,
+                fontSize: 28,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 35),
+            const SizedBox(height: 30),
             AppTextField(
               controller: emailController,
               hint: 'Registered Email',
               icon: Icons.email_outlined,
-              keyboardType:
-                  TextInputType.emailAddress,
+              keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 25),
             SizedBox(
               width: double.infinity,
-              height: 60,
+              height: 58,
               child: ElevatedButton(
-                onPressed:
-                    loading ? null : resetPassword,
+                onPressed: loading ? null : resetPassword,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryBlue,
                   foregroundColor: Colors.white,
@@ -704,23 +695,21 @@ class _ForgotPasswordScreenState
   }
 }
 
-// ======================================================
+// ============================================================
 // MAIN NAVIGATION
-// ======================================================
+// ============================================================
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
 
   @override
-  State<MainNavigation> createState() =>
-      _MainNavigationState();
+  State<MainNavigation> createState() => _MainNavigationState();
 }
 
-class _MainNavigationState
-    extends State<MainNavigation> {
+class _MainNavigationState extends State<MainNavigation> {
   int currentIndex = 0;
 
-  final pages = const [
+  final List<Widget> pages = const [
     HomePage(),
     SubjectsPage(),
     PracticePage(),
@@ -774,9 +763,9 @@ class _MainNavigationState
   }
 }
 
-// ======================================================
+// ============================================================
 // HOME
-// ======================================================
+// ============================================================
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -787,28 +776,23 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'SR STUDIES',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(18),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
                 color: primaryBlue,
-                borderRadius:
-                    BorderRadius.circular(26),
+                borderRadius: BorderRadius.circular(26),
               ),
               child: const Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Welcome to SR STUDIES',
@@ -833,7 +817,7 @@ class HomePage extends StatelessWidget {
             const Text(
               'Subjects',
               style: TextStyle(
-                fontSize: 28,
+                fontSize: 27,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -872,9 +856,9 @@ class HomePage extends StatelessWidget {
   }
 }
 
-// ======================================================
+// ============================================================
 // SUBJECTS
-// ======================================================
+// ============================================================
 
 class SubjectsPage extends StatelessWidget {
   const SubjectsPage({super.key});
@@ -885,9 +869,7 @@ class SubjectsPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'Subjects',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: ListView(
@@ -926,9 +908,9 @@ class SubjectsPage extends StatelessWidget {
   }
 }
 
-// ======================================================
+// ============================================================
 // SUBJECT SECTION
-// ======================================================
+// ============================================================
 
 class SubjectSection extends StatelessWidget {
   final String title;
@@ -945,8 +927,7 @@ class SubjectSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         GroupTitle(
           icon: icon,
@@ -964,9 +945,9 @@ class SubjectSection extends StatelessWidget {
   }
 }
 
-// ======================================================
+// ============================================================
 // SUBJECT CARD
-// ======================================================
+// ============================================================
 
 class SubjectCard extends StatelessWidget {
   final String title;
@@ -978,10 +959,8 @@ class SubjectCard extends StatelessWidget {
     required this.icon,
   });
 
-  String firestoreSubjectName() {
-    return title
-        .toLowerCase()
-        .replaceAll(' ', '_');
+  String get firestoreSubjectName {
+    return title.toLowerCase().replaceAll(' ', '_');
   }
 
   @override
@@ -989,8 +968,7 @@ class SubjectCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       height: 65,
-      margin:
-          const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 10),
       child: ElevatedButton(
         onPressed: () {
           Navigator.push(
@@ -998,8 +976,7 @@ class SubjectCard extends StatelessWidget {
             MaterialPageRoute(
               builder: (_) => SubjectVideosPage(
                 subjectName: title,
-                firestoreName:
-                    firestoreSubjectName(),
+                firestoreName: firestoreSubjectName,
               ),
             ),
           );
@@ -1009,8 +986,7 @@ class SubjectCard extends StatelessWidget {
           foregroundColor: Colors.black87,
           elevation: 1,
           shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(17),
+            borderRadius: BorderRadius.circular(17),
           ),
         ),
         child: Row(
@@ -1019,11 +995,8 @@ class SubjectCard extends StatelessWidget {
               width: 43,
               height: 43,
               decoration: BoxDecoration(
-                color: primaryBlue.withValues(
-                  alpha: 0.10,
-                ),
-                borderRadius:
-                    BorderRadius.circular(13),
+                color: primaryBlue.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(13),
               ),
               child: Icon(
                 icon,
@@ -1051,9 +1024,9 @@ class SubjectCard extends StatelessWidget {
   }
 }
 
-// ======================================================
-// SUBJECT VIDEOS PAGE
-// ======================================================
+// ============================================================
+// SUBJECT VIDEOS
+// ============================================================
 
 class SubjectVideosPage extends StatelessWidget {
   final String subjectName;
@@ -1086,11 +1059,10 @@ class SubjectVideosPage extends StatelessWidget {
           ),
         ),
       ),
-      body: StreamBuilder<QuerySnapshot>(
+      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: videosStream,
         builder: (context, snapshot) {
-          if (snapshot.connectionState ==
-              ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(
                 color: primaryBlue,
@@ -1103,24 +1075,21 @@ class SubjectVideosPage extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(25),
                 child: Text(
-                  'Videos load नहीं हो सके।\n\n'
-                  '${snapshot.error}',
+                  'Videos load नहीं हो सके।\n\n${snapshot.error}',
                   textAlign: TextAlign.center,
                 ),
               ),
             );
           }
 
-          final docs =
-              snapshot.data?.docs ?? [];
+          final docs = snapshot.data?.docs ?? [];
 
           if (docs.isEmpty) {
             return const Center(
               child: Padding(
                 padding: EdgeInsets.all(25),
                 child: Column(
-                  mainAxisAlignment:
-                      MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
                       Icons.video_library_outlined,
@@ -1146,20 +1115,13 @@ class SubjectVideosPage extends StatelessWidget {
             padding: const EdgeInsets.all(18),
             itemCount: docs.length,
             itemBuilder: (context, index) {
-              final data =
-                  docs[index].data()
-                      as Map<String, dynamic>;
+              final data = docs[index].data();
 
               return VideoCard(
-                title:
-                    data['title']?.toString() ??
-                    'Study Video',
+                title: (data['title'] ?? 'Study Video').toString(),
                 description:
-                    data['description']?.toString() ??
-                    '',
-                videoUrl:
-                    data['videoUrl']?.toString() ??
-                    '',
+                    (data['description'] ?? '').toString(),
+                videoUrl: (data['videoUrl'] ?? '').toString(),
               );
             },
           );
@@ -1169,9 +1131,9 @@ class SubjectVideosPage extends StatelessWidget {
   }
 }
 
-// ======================================================
+// ============================================================
 // VIDEO CARD
-// ======================================================
+// ============================================================
 
 class VideoCard extends StatelessWidget {
   final String title;
@@ -1185,73 +1147,53 @@ class VideoCard extends StatelessWidget {
     required this.videoUrl,
   });
 
-  Future<void> openVideo(
-    BuildContext context,
-  ) async {
-    if (videoUrl.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content:
-              Text('Video अभी उपलब्ध नहीं है'),
-        ),
-      );
+  Future<void> openVideo(BuildContext context) async {
+    if (videoUrl.trim().isEmpty) {
+      showMessage(context, 'Video अभी उपलब्ध नहीं है');
       return;
     }
 
     final uri = Uri.tryParse(videoUrl);
 
-    if (uri == null ||
-        !uri.hasScheme ||
-        !uri.hasAuthority) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Video link गलत है'),
-        ),
-      );
+    if (uri == null || !uri.hasScheme) {
+      showMessage(context, 'Video link गलत है');
       return;
     }
 
     try {
       final opened = await launchUrl(
         uri,
-        mode: LaunchMode.inAppBrowserView,
+        mode: LaunchMode.externalApplication,
       );
 
       if (!opened && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content:
-                Text('Video खोलने में समस्या हुई'),
-          ),
-        );
+        showMessage(context, 'Video खोलने में समस्या हुई');
       }
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content:
-                Text('Video खोलने में समस्या हुई'),
-          ),
-        );
+        showMessage(context, 'Video खोलने में समस्या हुई');
       }
     }
+  }
+
+  void showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin:
-          const EdgeInsets.only(bottom: 14),
+      margin: const EdgeInsets.only(bottom: 14),
       elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(18),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
@@ -1259,11 +1201,8 @@ class VideoCard extends StatelessWidget {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: primaryBlue.withValues(
-                      alpha: 0.10,
-                    ),
-                    borderRadius:
-                        BorderRadius.circular(14),
+                    color: primaryBlue.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                   child: const Icon(
                     Icons.play_circle_outline,
@@ -1277,8 +1216,7 @@ class VideoCard extends StatelessWidget {
                     title,
                     style: const TextStyle(
                       fontSize: 18,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
@@ -1298,24 +1236,17 @@ class VideoCard extends StatelessWidget {
               width: double.infinity,
               height: 50,
               child: ElevatedButton.icon(
-                onPressed:
-                    () => openVideo(context),
-                icon: const Icon(
-                  Icons.play_arrow,
-                ),
+                onPressed: () => openVideo(context),
+                icon: const Icon(Icons.play_arrow),
                 label: const Text(
                   'WATCH VIDEO',
                   style: TextStyle(
-                    fontWeight:
-                        FontWeight.bold,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                style:
-                    ElevatedButton.styleFrom(
-                  backgroundColor:
-                      primaryBlue,
-                  foregroundColor:
-                      Colors.white,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryBlue,
+                  foregroundColor: Colors.white,
                 ),
               ),
             ),
@@ -1326,59 +1257,88 @@ class VideoCard extends StatelessWidget {
   }
 }
 
-// ======================================================
+// ============================================================
 // PRACTICE
-// ======================================================
+// ============================================================
 
 class PracticePage extends StatelessWidget {
   const PracticePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      appBar: _SimpleAppBar(
-        title: 'Practice',
-      ),
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.all(20),
-          child: Text(
-            'Practice questions जल्द उपलब्ध होंगे।',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey,
-            ),
-          ),
-        ),
-      ),
+    return const SimplePage(
+      title: 'Practice',
+      message: 'Practice questions जल्द उपलब्ध होंगे।',
+      icon: Icons.quiz_outlined,
     );
   }
 }
 
-// ======================================================
+// ============================================================
 // NOTES
-// ======================================================
+// ============================================================
 
 class NotesPage extends StatelessWidget {
   const NotesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      appBar: _SimpleAppBar(
-        title: 'Notes',
+    return const SimplePage(
+      title: 'Notes',
+      message: 'Study notes जल्द उपलब्ध होंगे।',
+      icon: Icons.folder_outlined,
+    );
+  }
+}
+
+// ============================================================
+// SIMPLE PAGE
+// ============================================================
+
+class SimplePage extends StatelessWidget {
+  final String title;
+  final String message;
+  final IconData icon;
+
+  const SimplePage({
+    super.key,
+    required this.title,
+    required this.message,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       body: Center(
         child: Padding(
-          padding: EdgeInsets.all(20),
-          child: Text(
-            'Study notes जल्द उपलब्ध होंगे।',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey,
-            ),
+          padding: const EdgeInsets.all(25),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 75,
+                color: primaryBlue,
+              ),
+              const SizedBox(height: 20),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1386,51 +1346,19 @@ class NotesPage extends StatelessWidget {
   }
 }
 
-// ======================================================
-// SIMPLE APP BAR
-// ======================================================
-
-class _SimpleAppBar extends StatelessWidget
-    implements PreferredSizeWidget {
-  final String title;
-
-  const _SimpleAppBar({
-    required this.title,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  @override
-  Size get preferredSize =>
-      const Size.fromHeight(kToolbarHeight);
-}
-
-// ======================================================
+// ============================================================
 // PROFILE
-// ======================================================
+// ============================================================
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() =>
-      _ProfileScreenState();
+  State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState
-    extends State<ProfileScreen> {
-  final nameController =
-      TextEditingController();
+class _ProfileScreenState extends State<ProfileScreen> {
+  final nameController = TextEditingController();
 
   bool saving = false;
 
@@ -1439,9 +1367,7 @@ class _ProfileScreenState
     super.initState();
 
     nameController.text =
-        FirebaseAuth.instance.currentUser
-                ?.displayName ??
-            '';
+        FirebaseAuth.instance.currentUser?.displayName ?? '';
   }
 
   @override
@@ -1451,8 +1377,7 @@ class _ProfileScreenState
   }
 
   Future<void> changeName() async {
-    final name =
-        nameController.text.trim();
+    final name = nameController.text.trim();
 
     if (name.isEmpty) {
       showMessage('Name खाली नहीं हो सकता');
@@ -1462,8 +1387,7 @@ class _ProfileScreenState
     setState(() => saving = true);
 
     try {
-      final user =
-          FirebaseAuth.instance.currentUser;
+      final user = FirebaseAuth.instance.currentUser;
 
       if (user == null) {
         showMessage('User login नहीं है');
@@ -1471,17 +1395,26 @@ class _ProfileScreenState
       }
 
       await user.updateDisplayName(name);
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .set(
+        {
+          'name': name,
+          'email': user.email,
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+
       await user.reload();
 
       if (mounted) {
-        showMessage(
-          'Name successfully updated',
-        );
+        showMessage('Name successfully updated');
       }
     } catch (_) {
-      showMessage(
-        'Name update नहीं हो पाया',
-      );
+      showMessage('Name update नहीं हो पाया');
     } finally {
       if (mounted) {
         setState(() => saving = false);
@@ -1497,24 +1430,19 @@ class _ProfileScreenState
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
+      SnackBar(content: Text(message)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final user =
-        FirebaseAuth.instance.currentUser;
+    final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           'Profile',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: SingleChildScrollView(
@@ -1543,8 +1471,7 @@ class _ProfileScreenState
               controller: nameController,
               hint: 'Student Name',
               icon: Icons.person_outline,
-              textCapitalization:
-                  TextCapitalization.words,
+              textCapitalization: TextCapitalization.words,
             ),
             const SizedBox(height: 12),
             Text(
@@ -1558,22 +1485,16 @@ class _ProfileScreenState
               width: double.infinity,
               height: 55,
               child: ElevatedButton(
-                onPressed:
-                    saving ? null : changeName,
-                style:
-                    ElevatedButton.styleFrom(
-                  backgroundColor:
-                      primaryBlue,
-                  foregroundColor:
-                      Colors.white,
+                onPressed: saving ? null : changeName,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryBlue,
+                  foregroundColor: Colors.white,
                 ),
                 child: saving
                     ? const CircularProgressIndicator(
                         color: Colors.white,
                       )
-                    : const Text(
-                        'CHANGE NAME',
-                      ),
+                    : const Text('CHANGE NAME'),
               ),
             ),
             const SizedBox(height: 35),
@@ -1589,23 +1510,19 @@ class _ProfileScreenState
             ),
             const SizedBox(height: 15),
             SocialButton(
-              icon:
-                  Icons.play_circle_fill,
+              icon: Icons.play_circle_fill,
               title: 'YouTube',
-              url:
-                  'https://youtube.com/@rceditor999?si=4009XQKBUTsndL2u',
+              url: 'https://youtube.com/@rceditor999',
             ),
             SocialButton(
               icon: Icons.camera_alt,
               title: 'Instagram',
-              url:
-                  'https://www.instagram.com/rceditor999?igsh=NXJkdTg5dHBheG96',
+              url: 'https://www.instagram.com/rceditor999/',
             ),
             SocialButton(
               icon: Icons.send,
               title: 'Telegram',
-              url:
-                  'https://t.me/RCEDITOR999',
+              url: 'https://t.me/RCEDITOR999',
             ),
             const SizedBox(height: 25),
             SizedBox(
@@ -1613,14 +1530,11 @@ class _ProfileScreenState
               height: 55,
               child: OutlinedButton.icon(
                 onPressed: logout,
-                icon: const Icon(
-                  Icons.logout,
-                ),
+                icon: const Icon(Icons.logout),
                 label: const Text(
                   'LOGOUT',
                   style: TextStyle(
-                    fontWeight:
-                        FontWeight.bold,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -1632,9 +1546,9 @@ class _ProfileScreenState
   }
 }
 
-// ======================================================
+// ============================================================
 // SOCIAL BUTTON
-// ======================================================
+// ============================================================
 
 class SocialButton extends StatelessWidget {
   final IconData icon;
@@ -1648,22 +1562,11 @@ class SocialButton extends StatelessWidget {
     required this.url,
   });
 
-  Future<void> openLink(
-    BuildContext context,
-  ) async {
+  Future<void> openLink(BuildContext context) async {
     final uri = Uri.tryParse(url);
 
-    if (uri == null ||
-        !uri.hasScheme ||
-        !uri.hasAuthority) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text('$title का link गलत है'),
-          ),
-        );
-      }
+    if (uri == null || !uri.hasScheme) {
+      showMessage(context, '$title link गलत है');
       return;
     }
 
@@ -1674,43 +1577,34 @@ class SocialButton extends StatelessWidget {
       );
 
       if (!opened && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text('$title खोलने में समस्या हुई'),
-          ),
-        );
+        showMessage(context, '$title खोलने में समस्या हुई');
       }
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text('$title खोलने में समस्या हुई'),
-          ),
-        );
+        showMessage(context, '$title खोलने में समस्या हुई');
       }
     }
+  }
+
+  void showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      margin:
-          const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 10),
       child: Material(
         color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16),
         child: InkWell(
-          borderRadius:
-              BorderRadius.circular(16),
-          onTap:
-              () => openLink(context),
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => openLink(context),
           child: Padding(
-            padding:
-                const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Icon(
@@ -1722,17 +1616,13 @@ class SocialButton extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title,
-                    style:
-                        const TextStyle(
+                    style: const TextStyle(
                       fontSize: 17,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                const Icon(
-                  Icons.open_in_new,
-                ),
+                const Icon(Icons.open_in_new),
               ],
             ),
           ),
@@ -1742,9 +1632,9 @@ class SocialButton extends StatelessWidget {
   }
 }
 
-// ======================================================
+// ============================================================
 // GROUP TITLE
-// ======================================================
+// ============================================================
 
 class GroupTitle extends StatelessWidget {
   final IconData icon;
@@ -1759,8 +1649,7 @@ class GroupTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-          const EdgeInsets.only(
+      padding: const EdgeInsets.only(
         left: 4,
         bottom: 10,
       ),
@@ -1775,11 +1664,9 @@ class GroupTitle extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style:
-                  const TextStyle(
+              style: const TextStyle(
                 fontSize: 19,
-                fontWeight:
-                    FontWeight.bold,
+                fontWeight: FontWeight.bold,
                 color: primaryBlue,
               ),
             ),
@@ -1790,9 +1677,9 @@ class GroupTitle extends StatelessWidget {
   }
 }
 
-// ======================================================
+// ============================================================
 // TEXT FIELD
-// ======================================================
+// ============================================================
 
 class AppTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -1811,8 +1698,7 @@ class AppTextField extends StatelessWidget {
     this.obscureText = false,
     this.suffix,
     this.keyboardType,
-    this.textCapitalization =
-        TextCapitalization.none,
+    this.textCapitalization = TextCapitalization.none,
   });
 
   @override
@@ -1821,8 +1707,7 @@ class AppTextField extends StatelessWidget {
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
-      textCapitalization:
-          textCapitalization,
+      textCapitalization: textCapitalization,
       decoration: InputDecoration(
         hintText: hint,
         prefixIcon: Icon(icon),
@@ -1830,31 +1715,23 @@ class AppTextField extends StatelessWidget {
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
-          borderRadius:
-              BorderRadius.circular(18),
-          borderSide:
-              BorderSide.none,
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide.none,
         ),
-        enabledBorder:
-            OutlineInputBorder(
-          borderRadius:
-              BorderRadius.circular(18),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
           borderSide: BorderSide(
             color: Colors.grey.shade300,
           ),
         ),
-        focusedBorder:
-            OutlineInputBorder(
-          borderRadius:
-              BorderRadius.circular(18),
-          borderSide:
-              const BorderSide(
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(
             color: primaryBlue,
             width: 2,
           ),
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(
+        contentPadding: const EdgeInsets.symmetric(
           vertical: 18,
           horizontal: 18,
         ),
