@@ -12,7 +12,7 @@ jobs:
 
     steps:
 
-      # 1. Checkout repository
+      # 1. Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -24,7 +24,7 @@ jobs:
           channel: stable
           cache: true
 
-      # 3. Check Firebase configuration
+      # 3. Check Firebase Configuration
       - name: Check Firebase Configuration
         run: |
           if [ ! -f "android/app/google-services.json" ]; then
@@ -34,7 +34,7 @@ jobs:
 
           echo "Firebase configuration found."
 
-      # 4. Read exact Firebase package name
+      # 4. Read Firebase Package Name
       - name: Read Firebase Package Name
         shell: bash
         run: |
@@ -45,7 +45,8 @@ jobs:
               data = json.load(f)
 
           print(
-              data["client"][0]["client_info"]["android_client_info"]["package_name"]
+              data["client"][0]["client_info"]
+              ["android_client_info"]["package_name"]
           )
           PY
           )
@@ -58,7 +59,7 @@ jobs:
           echo "Firebase package: $PACKAGE_NAME"
           echo "PACKAGE_NAME=$PACKAGE_NAME" >> "$GITHUB_ENV"
 
-      # 5. Backup Firebase configuration
+      # 5. Backup Firebase Configuration
       - name: Backup Firebase Configuration
         run: |
           mkdir -p /tmp/sr_firebase
@@ -68,13 +69,14 @@ jobs:
 
           echo "Firebase configuration backed up."
 
-      # 6. Remove old Android project
+      # 6. Remove Old Android Project
       - name: Remove Old Android Project
         run: |
           rm -rf android
+
           echo "Old Android project removed."
 
-      # 7. Calculate Flutter package parts
+      # 7. Calculate Flutter Package Parts
       - name: Calculate Flutter Package Parts
         shell: bash
         run: |
@@ -112,7 +114,7 @@ jobs:
           print("Project:", project_name)
           PY
 
-      # 8. Create fresh modern Android project
+      # 8. Create Modern Android Project
       - name: Create Modern Android Project
         run: |
           ORG=$(cat /tmp/sr_org)
@@ -124,15 +126,16 @@ jobs:
             --project-name="$PROJECT" \
             .
 
-          echo "Fresh Android project created."
+          echo "Modern Android project created."
 
-      # 9. Remove default Flutter test
+      # 9. Remove Default Flutter Test
       - name: Remove Default Flutter Test
         run: |
           rm -f test/widget_test.dart
+
           echo "Default test removed."
 
-      # 10. Restore Firebase
+      # 10. Restore Firebase Configuration
       - name: Restore Firebase Configuration
         run: |
           mkdir -p android/app
@@ -142,10 +145,12 @@ jobs:
 
           echo "Firebase configuration restored."
 
-      # 11. Configure Android App
-      - name: Configure Android App
+      # 11. Configure Android Application
+      - name: Configure Android Application
         shell: bash
         run: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+
           python3 - <<'PY'
           import re
 
@@ -154,9 +159,9 @@ jobs:
           with open(path, "r", encoding="utf-8") as f:
               text = f.read()
 
-          # -------------------------------------------------
-          # APPLICATION NAME
-          # -------------------------------------------------
+          # -----------------------------------------
+          # APP NAME
+          # -----------------------------------------
 
           if 'android:label=' in text:
               text = re.sub(
@@ -172,30 +177,31 @@ jobs:
                   1
               )
 
-          # -------------------------------------------------
-          # APPLICATION NAME = MODERN FLUTTER
-          # -------------------------------------------------
+          # -----------------------------------------
+          # FLUTTER EMBEDDING V2
+          # -----------------------------------------
 
-          if 'android:name="io.flutter.app.FlutterApplication"' in text:
-              text = text.replace(
-                  'android:name="io.flutter.app.FlutterApplication"',
-                  'android:name="${applicationName}"'
-              )
+          # Remove old V1 application reference if present.
+          text = text.replace(
+              'android:name="io.flutter.app.FlutterApplication"',
+              'android:name="${applicationName}"'
+          )
 
-          # If application has no android:name, add modern one.
-          if '<application' in text and 'android:name=' not in text.split(
-              '<application', 1
-          )[1].split('>', 1)[0]:
+          # Add modern applicationName if missing.
+          app_start = text.find("<application")
+          app_end = text.find(">", app_start)
 
-              text = text.replace(
-                  '<application',
-                  '<application android:name="${applicationName}"',
-                  1
-              )
+          if app_start != -1 and app_end != -1:
+              application_tag = text[app_start:app_end]
 
-          # -------------------------------------------------
+              if "android:name=" not in application_tag:
+                  text = text[:app_end] + \
+                      ' android:name="${applicationName}"' + \
+                      text[app_end:]
+
+          # -----------------------------------------
           # LAUNCHER ICON
-          # -------------------------------------------------
+          # -----------------------------------------
 
           if 'android:icon=' in text:
               text = re.sub(
@@ -211,30 +217,27 @@ jobs:
                   1
               )
 
-          # -------------------------------------------------
-          # FLUTTER EMBEDDING V2
-          # THIS IS THE IMPORTANT FIX
-          # -------------------------------------------------
+          # -----------------------------------------
+          # FORCE FLUTTER EMBEDDING V2
+          # -----------------------------------------
 
-          if 'android:name="flutterEmbedding"' in text:
+          if "android:name=\"flutterEmbedding\"" in text:
               text = re.sub(
                   r'<meta-data\s+'
                   r'android:name="flutterEmbedding"\s+'
                   r'android:value="[^"]*"\s*/>',
-                  '<meta-data\n'
-                  '                android:name="flutterEmbedding"\n'
-                  '                android:value="2" />',
+                  '''<meta-data
+                android:name="flutterEmbedding"
+                android:value="2" />''',
                   text,
                   count=1
               )
           else:
               text = text.replace(
                   '</application>',
-                  '''
-              <!-- Flutter Android Embedding V2 -->
-              <meta-data
-                  android:name="flutterEmbedding"
-                  android:value="2" />
+                  '''<meta-data
+                android:name="flutterEmbedding"
+                android:value="2" />
           </application>''',
                   1
               )
@@ -242,42 +245,46 @@ jobs:
           with open(path, "w", encoding="utf-8") as f:
               f.write(text)
 
-          print("Android app configured.")
-          print("Application name: SR STUDIES")
+          print("SR STUDIES Android configuration complete.")
           print("Flutter Android Embedding: V2")
-          print("Launcher icon: @mipmap/ic_launcher")
+          print("Launcher: @mipmap/ic_launcher")
           PY
 
-      # 12. Verify Android Manifest
-      - name: Verify Android Embedding
+      # 12. Verify Modern Android Embedding
+      - name: Verify Modern Android Embedding
         shell: bash
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
-
-          echo "Checking AndroidManifest.xml..."
 
           if [ ! -f "$MANIFEST" ]; then
             echo "ERROR: AndroidManifest.xml not found!"
             exit 1
           fi
 
-          if grep -q 'io.flutter.app.FlutterApplication' "$MANIFEST"; then
-            echo "ERROR: Flutter Android V1 application detected!"
+          if grep -q "io.flutter.app.FlutterActivity" "$MANIFEST"; then
+            echo "ERROR: Old FlutterActivity detected!"
+            exit 1
+          fi
+
+          if grep -q "io.flutter.app.FlutterApplication" "$MANIFEST"; then
+            echo "ERROR: Old FlutterApplication detected!"
             exit 1
           fi
 
           if grep -q 'android:name="flutterEmbedding"' "$MANIFEST" && \
              grep -q 'android:value="2"' "$MANIFEST"; then
-            echo "SUCCESS: Flutter Android Embedding V2 detected."
+
+            echo "Modern Flutter Android Embedding V2 confirmed."
+
           else
             echo "ERROR: Flutter Embedding V2 metadata missing!"
-            echo "----- AndroidManifest.xml -----"
             cat "$MANIFEST"
             exit 1
           fi
 
       # 13. Configure Google Services
       - name: Configure Google Services
+        shell: bash
         run: |
           if ! grep -q "com.google.gms.google-services" \
             android/settings.gradle.kts; then
@@ -297,15 +304,16 @@ jobs:
 
           echo "Google Services configured."
 
-      # 14. Check custom app icon
+      # 14. Check Custom App Icon
       - name: Check Custom App Icon
+        shell: bash
         run: |
           if [ ! -f "assets/icon/app_icon.png" ]; then
-            echo "ERROR: assets/icon/app_icon.png not found!"
-            exit 1
+            echo "WARNING: assets/icon/app_icon.png not found."
+            echo "A fallback icon will be generated."
+          else
+            echo "Custom icon file found."
           fi
-
-          echo "Custom app icon found."
 
       # 15. Install ImageMagick
       - name: Install ImageMagick
@@ -313,27 +321,14 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y imagemagick
 
-      # 16. Generate Android Launcher Icons
-      - name: Generate Android Launcher Icons
+          echo "ImageMagick installed."
+
+      # 16. Generate Safe Android Launcher Icons
+      - name: Generate Safe Android Launcher Icons
         shell: bash
         run: |
           ICON="assets/icon/app_icon.png"
           RES="android/app/src/main/res"
-
-          echo "Preparing SR STUDIES icon..."
-
-          convert "$ICON" \
-            -auto-orient \
-            -background white \
-            -alpha remove \
-            -alpha off \
-            -resize 1024x1024 \
-            -gravity center \
-            -extent 1024x1024 \
-            -strip \
-            PNG24:/tmp/sr_studies_icon.png
-
-          identify /tmp/sr_studies_icon.png
 
           mkdir -p "$RES/mipmap-mdpi"
           mkdir -p "$RES/mipmap-hdpi"
@@ -341,9 +336,81 @@ jobs:
           mkdir -p "$RES/mipmap-xxhdpi"
           mkdir -p "$RES/mipmap-xxxhdpi"
 
-          # Remove adaptive icon XML if present.
-          rm -f "$RES/mipmap-anydpi-v26/ic_launcher.xml" || true
-          rm -f "$RES/mipmap-anydpi-v26/ic_launcher_round.xml" || true
+          echo "Checking custom icon..."
+
+          VALID_ICON="false"
+
+          if [ -f "$ICON" ]; then
+            if identify "$ICON" >/dev/null 2>&1; then
+              VALID_ICON="true"
+              echo "Valid custom PNG detected."
+            else
+              echo "WARNING: app_icon.png is invalid or unreadable."
+            fi
+          fi
+
+          # -----------------------------------------
+          # USE CUSTOM ICON IF VALID
+          # -----------------------------------------
+
+          if [ "$VALID_ICON" = "true" ]; then
+
+            echo "Using custom SR STUDIES icon."
+
+            convert "$ICON" \
+              -auto-orient \
+              -background white \
+              -alpha remove \
+              -alpha off \
+              -resize 1024x1024 \
+              -gravity center \
+              -extent 1024x1024 \
+              -strip \
+              PNG24:/tmp/sr_studies_icon.png
+
+          else
+
+            echo "Creating safe SR STUDIES fallback icon."
+
+            # This is ONLY a temporary build icon.
+            # The original app_icon.png is NOT deleted.
+
+            convert \
+              -size 1024x1024 \
+              xc:white \
+              -gravity center \
+              -fill black \
+              -pointsize 110 \
+              -annotate +0+0 "SR STUDIES" \
+              PNG24:/tmp/sr_studies_icon.png
+
+            echo "Fallback icon created."
+
+          fi
+
+          # -----------------------------------------
+          # VERIFY GENERATED ICON
+          # -----------------------------------------
+
+          if ! identify /tmp/sr_studies_icon.png >/dev/null 2>&1; then
+            echo "ERROR: Generated launcher icon is invalid!"
+            exit 1
+          fi
+
+          identify /tmp/sr_studies_icon.png
+
+          # -----------------------------------------
+          # REMOVE ADAPTIVE ICON XML
+          # -----------------------------------------
+
+          rm -f \
+            "$RES/mipmap-anydpi-v26/ic_launcher.xml" \
+            "$RES/mipmap-anydpi-v26/ic_launcher_round.xml" \
+            2>/dev/null || true
+
+          # -----------------------------------------
+          # GENERATE ALL ANDROID SIZES
+          # -----------------------------------------
 
           convert /tmp/sr_studies_icon.png \
             -resize 48x48 \
@@ -365,35 +432,37 @@ jobs:
             -resize 192x192 \
             PNG24:"$RES/mipmap-xxxhdpi/ic_launcher.png"
 
-          echo "SR STUDIES launcher icons generated."
+          echo "======================================"
+          echo "ANDROID LAUNCHER ICONS READY"
+          echo "======================================"
 
-      # 17. Get dependencies
+      # 17. Get Flutter Dependencies
       - name: Get Dependencies
         run: |
           flutter pub get
 
-      # 18. Verify no Android V1 references
+      # 18. Final Android V1 Check
       - name: Final Android V1 Check
         shell: bash
         run: |
-          echo "Searching Android project for old V1 embedding..."
+          echo "Checking for old Android V1 embedding..."
 
           if grep -R \
             -E "io\.flutter\.app\.FlutterActivity|io\.flutter\.app\.FlutterApplication|flutterEmbedding.*value=\"1\"" \
             android 2>/dev/null; then
 
-            echo "ERROR: Old Android V1 embedding reference found!"
+            echo "ERROR: Old Android V1 embedding found!"
             exit 1
           fi
 
-          echo "No Android V1 embedding references found."
+          echo "No Android V1 embedding detected."
 
-      # 19. Analyze Flutter code
+      # 19. Analyze Flutter Code
       - name: Analyze Code
         run: |
           flutter analyze
 
-      # 20. Clean build
+      # 20. Clean Flutter Build
       - name: Clean Flutter Build
         run: |
           flutter clean
@@ -406,6 +475,7 @@ jobs:
 
       # 22. Verify APK
       - name: Verify APK
+        shell: bash
         run: |
           APK="build/app/outputs/flutter-apk/app-release.apk"
 
@@ -414,11 +484,11 @@ jobs:
             exit 1
           fi
 
-          ls -lh "$APK"
-
           echo "======================================"
           echo "SR STUDIES APK CREATED SUCCESSFULLY"
           echo "======================================"
+
+          ls -lh "$APK"
 
       # 23. Upload APK
       - name: Upload APK
