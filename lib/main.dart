@@ -37,7 +37,6 @@ class SRStudiesApp extends StatelessWidget {
           seedColor: primaryBlue,
         ),
         appBarTheme: const AppBarTheme(
-          centerTitle: false,
           backgroundColor: backgroundColor,
           foregroundColor: Colors.black87,
           elevation: 0,
@@ -64,6 +63,7 @@ class FirebaseErrorApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      title: 'SR STUDIES',
       home: Scaffold(
         body: SafeArea(
           child: Center(
@@ -199,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } on FirebaseAuthException catch (e) {
       showMessage(authError(e.code));
-    } catch (e) {
+    } catch (_) {
       showMessage('Login में समस्या हुई');
     } finally {
       if (mounted) {
@@ -298,8 +298,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) =>
-                            const ForgotPasswordScreen(),
+                        builder: (_) => const ForgotPasswordScreen(),
                       ),
                     );
                   },
@@ -461,7 +460,7 @@ class _SignupScreenState extends State<SignupScreen> {
       }
     } on FirebaseAuthException catch (e) {
       showMessage(signupError(e.code));
-    } catch (e) {
+    } catch (_) {
       showMessage('Account बनाने में समस्या हुई');
     } finally {
       if (mounted) {
@@ -618,7 +617,7 @@ class _ForgotPasswordScreenState
       }
     } on FirebaseAuthException catch (e) {
       showMessage('Password reset failed: ${e.code}');
-    } catch (e) {
+    } catch (_) {
       showMessage('Password reset में समस्या हुई');
     } finally {
       if (mounted) {
@@ -776,7 +775,10 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'SR STUDIES',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+          ),
         ),
       ),
       body: SingleChildScrollView(
@@ -1153,9 +1155,11 @@ class VideoCard extends StatelessWidget {
       return;
     }
 
-    final uri = Uri.tryParse(videoUrl);
+    final uri = Uri.tryParse(videoUrl.trim());
 
-    if (uri == null || !uri.hasScheme) {
+    if (uri == null ||
+        !uri.hasScheme ||
+        (uri.scheme != 'http' && uri.scheme != 'https')) {
       showMessage(context, 'Video link गलत है');
       return;
     }
@@ -1498,6 +1502,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 35),
+
+            // ==================================================
+            // SOCIAL MEDIA
+            // ==================================================
+
             const Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -1509,22 +1518,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 15),
+
             SocialButton(
               icon: Icons.play_circle_fill,
               title: 'YouTube',
               url: 'https://youtube.com/@rceditor999',
             ),
+
             SocialButton(
               icon: Icons.camera_alt,
               title: 'Instagram',
               url: 'https://www.instagram.com/rceditor999/',
             ),
+
             SocialButton(
               icon: Icons.send,
               title: 'Telegram',
               url: 'https://t.me/RCEDITOR999',
             ),
+
             const SizedBox(height: 25),
+
             SizedBox(
               width: double.infinity,
               height: 55,
@@ -1565,7 +1579,9 @@ class SocialButton extends StatelessWidget {
   Future<void> openLink(BuildContext context) async {
     final uri = Uri.tryParse(url);
 
-    if (uri == null || !uri.hasScheme) {
+    if (uri == null ||
+        !uri.hasScheme ||
+        (uri.scheme != 'http' && uri.scheme != 'https')) {
       showMessage(context, '$title link गलत है');
       return;
     }
@@ -1577,16 +1593,25 @@ class SocialButton extends StatelessWidget {
       );
 
       if (!opened && context.mounted) {
-        showMessage(context, '$title खोलने में समस्या हुई');
+        showMessage(
+          context,
+          '$title खोलने में समस्या हुई',
+        );
       }
     } catch (_) {
       if (context.mounted) {
-        showMessage(context, '$title खोलने में समस्या हुई');
+        showMessage(
+          context,
+          '$title खोलने में समस्या हुई',
+        );
       }
     }
   }
 
-  void showMessage(BuildContext context, String message) {
+  void showMessage(
+    BuildContext context,
+    String message,
+  ) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
