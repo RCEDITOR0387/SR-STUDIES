@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
@@ -10,6 +11,10 @@ const Color backgroundColor = Color(0xFFF6F7FC);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
 
   try {
     await Firebase.initializeApp();
@@ -299,8 +304,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) =>
-                            const ForgotPasswordScreen(),
+                        builder: (_) => const ForgotPasswordScreen(),
                       ),
                     );
                   },
@@ -1030,7 +1034,6 @@ class SubjectCard extends StatelessWidget {
 
 // ============================================================
 // SUBJECT VIDEOS
-// SUPPORTS LIVE + RECORDED
 // ============================================================
 
 class SubjectVideosPage extends StatelessWidget {
@@ -1049,6 +1052,10 @@ class SubjectVideosPage extends StatelessWidget {
         .collection('subjects')
         .doc(firestoreName)
         .collection('videos')
+        .orderBy(
+          'createdAt',
+          descending: true,
+        )
         .snapshots();
 
     return Scaffold(
@@ -1063,8 +1070,7 @@ class SubjectVideosPage extends StatelessWidget {
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: videosStream,
         builder: (context, snapshot) {
-          if (snapshot.connectionState ==
-              ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(
                 color: primaryBlue,
@@ -1084,26 +1090,7 @@ class SubjectVideosPage extends StatelessWidget {
             );
           }
 
-          final docs = [...(snapshot.data?.docs ?? [])];
-
-          // ----------------------------------------------------
-          // createdAt के हिसाब से latest video ऊपर
-          // createdAt missing होने पर भी crash नहीं होगा.
-          // ----------------------------------------------------
-
-          docs.sort((a, b) {
-            final aTime = a.data()['createdAt'];
-            final bTime = b.data()['createdAt'];
-
-            if (aTime is Timestamp && bTime is Timestamp) {
-              return bTime.compareTo(aTime);
-            }
-
-            if (aTime is Timestamp) return -1;
-            if (bTime is Timestamp) return 1;
-
-            return 0;
-          });
+          final docs = snapshot.data?.docs ?? [];
 
           if (docs.isEmpty) {
             return const Center(
@@ -1147,12 +1134,9 @@ class SubjectVideosPage extends StatelessWidget {
               final videoUrl =
                   (data['videoUrl'] ?? '').toString();
 
-              final videoType =
-                  (data['videoType'] ?? 'recorded')
-                      .toString()
-                      .toLowerCase();
-
-              final isLive = videoType == 'live';
+              final isLive =
+                  data['isLive'] == true ||
+                  data['type'] == 'live';
 
               return VideoCard(
                 title: title,
@@ -1170,7 +1154,8 @@ class SubjectVideosPage extends StatelessWidget {
 
 // ============================================================
 // VIDEO CARD
-// LIVE + RECORDED
+// RECORDED + LIVE
+// SPEED + FULLSCREEN + ROTATION
 // ============================================================
 
 class VideoCard extends StatefulWidget {
@@ -1184,7 +1169,7 @@ class VideoCard extends StatefulWidget {
     required this.title,
     required this.description,
     required this.videoUrl,
-    required this.isLive,
+    this.isLive = false,
   });
 
   @override
@@ -1197,24 +1182,35 @@ class _VideoCardState extends State<VideoCard> {
   String? videoId;
   String? errorMessage;
 
+  bool isFullscreen = false;
+  bool muted = false;
+
+  double playbackSpeed = 1.0;
+
+  final List<double> speeds = const [
+    0.25,
+    0.5,
+    0.75,
+    1.0,
+    1.25,
+    1.5,
+    1.75,
+    2.0,
+  ];
+
   @override
   void initState() {
     super.initState();
-    initializeVideo();
+    initializePlayer();
   }
 
-  void initializeVideo() {
-    final url = widget.videoUrl.trim();
-
-    if (url.isEmpty) {
-      errorMessage = 'Video link उपलब्ध नहीं है';
-      return;
-    }
-
-    final id = YoutubePlayer.convertUrlToId(url);
+  void initializePlayer() {
+    final id = YoutubePlayer.convertUrlToId(
+      widget.videoUrl.trim(),
+    );
 
     if (id == null || id.isEmpty) {
-      errorMessage = 'YouTube video link गलत है';
+      errorMessage = 'Video link गलत है';
       return;
     }
 
@@ -1228,26 +1224,409 @@ class _VideoCardState extends State<VideoCard> {
         enableCaption: true,
         controlsVisibleAtStart: true,
         hideControls: false,
-
-        // Live stream के लिए loop जरूरी नहीं.
         loop: false,
+        forceHD: false,
+      ),
+    );
 
-        // Live stream को seek करने की कोशिश नहीं.
-        disableDragSeek: widget.isLive,
+    controller!.addListener(playerListener);
+  }
+
+  void playerListener() {
+    if (!mounted || controller == null) return;
+
+    if (controller!.value.isFullScreen != isFullscreen) {
+      setState(() {
+        isFullscreen = controller!.value.isFullScreen;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    controller?.removeListener(playerListener);
+    controller?.dispose();
+
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
+
+    super.dispose();
+  }
+
+  // ==========================================================
+  // FULLSCREEN
+  // ==========================================================
+
+  Future<void> enterFullscreen() async {
+    if (controller == null) return;
+
+    await SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.immersiveSticky,
+    );
+
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+
+    controller!.toggleFullScreenMode();
+
+    if (mounted) {
+      setState(() {
+        isFullscreen = true;
+      });
+    }
+  }
+
+  Future<void> exitFullscreen() async {
+    if (controller == null) return;
+
+    controller!.toggleFullScreenMode();
+
+    await SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.edgeToEdge,
+    );
+
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
+
+    if (mounted) {
+      setState(() {
+        isFullscreen = false;
+      });
+    }
+  }
+
+  Future<void> toggleFullscreen() async {
+    if (isFullscreen) {
+      await exitFullscreen();
+    } else {
+      await enterFullscreen();
+    }
+  }
+
+  // ==========================================================
+  // SPEED
+  // ==========================================================
+
+  void changeSpeed(double speed) {
+    if (controller == null) return;
+
+    controller!.setPlaybackRate(speed);
+
+    setState(() {
+      playbackSpeed = speed;
+    });
+  }
+
+  void showSpeedMenu() {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              20,
+              10,
+              20,
+              25,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Playback Speed',
+                  style: TextStyle(
+                    fontSize: 21,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 15),
+                ...speeds.map(
+                  (speed) => ListTile(
+                    leading: Icon(
+                      speed == playbackSpeed
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_off,
+                      color: primaryBlue,
+                    ),
+                    title: Text(
+                      '${speed.toStringAsFixed(speed == speed.roundToDouble() ? 0 : 2)}x',
+                    ),
+                    onTap: () {
+                      changeSpeed(speed);
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ==========================================================
+  // MUTE
+  // ==========================================================
+
+  void toggleMute() {
+    if (controller == null) return;
+
+    if (muted) {
+      controller!.unMute();
+    } else {
+      controller!.mute();
+    }
+
+    setState(() {
+      muted = !muted;
+    });
+  }
+
+  // ==========================================================
+  // QUALITY
+  // ==========================================================
+
+  void showQualityInfo() {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return const SafeArea(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              24,
+              15,
+              24,
+              30,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.high_quality,
+                  size: 55,
+                  color: primaryBlue,
+                ),
+                SizedBox(height: 15),
+                Text(
+                  'Video Quality',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'YouTube video की quality internet speed और '
+                  'YouTube player के अनुसार automatically adjust होती है। '
+                  'इस player package से 144p/360p/720p/1080p को '
+                  'reliably force करना उपलब्ध नहीं है।',
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ==========================================================
+  // PLAYER
+  // ==========================================================
+
+  Widget buildPlayer() {
+    if (controller == null || videoId == null) {
+      return Container(
+        width: double.infinity,
+        height: 210,
+        color: Colors.black12,
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              size: 50,
+              color: Colors.red,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              errorMessage ?? 'Video load नहीं हुआ',
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return YoutubePlayer(
+      controller: controller!,
+      aspectRatio: 16 / 9,
+
+      topActions: [
+        if (widget.isLive)
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 9,
+              vertical: 5,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.red,
+              borderRadius: BorderRadius.circular(5),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.circle,
+                  size: 8,
+                  color: Colors.white,
+                ),
+                SizedBox(width: 5),
+                Text(
+                  'LIVE',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        const Spacer(),
+        GestureDetector(
+          onTap: showQualityInfo,
+          child: const Padding(
+            padding: EdgeInsets.all(8),
+            child: Icon(
+              Icons.high_quality,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+
+      bottomActions: [
+        PlayPauseButton(),
+
+        if (!widget.isLive) ...[
+          const SizedBox(width: 8),
+          CurrentPosition(),
+          const SizedBox(width: 8),
+          ProgressBar(
+            isExpanded: true,
+          ),
+          const SizedBox(width: 8),
+          RemainingDuration(),
+        ] else ...[
+          const SizedBox(width: 10),
+          const Expanded(
+            child: Text(
+              'LIVE',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+
+        const SizedBox(width: 8),
+
+        GestureDetector(
+          onTap: toggleMute,
+          child: Icon(
+            muted
+                ? Icons.volume_off
+                : Icons.volume_up,
+            color: Colors.white,
+          ),
+        ),
+
+        const SizedBox(width: 10),
+
+        GestureDetector(
+          onTap: showSpeedMenu,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 7,
+              vertical: 4,
+            ),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Colors.white,
+              ),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              '${playbackSpeed}x',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(width: 10),
+
+        GestureDetector(
+          onTap: showQualityInfo,
+          child: const Icon(
+            Icons.settings,
+            color: Colors.white,
+          ),
+        ),
+
+        const SizedBox(width: 8),
+
+        GestureDetector(
+          onTap: toggleFullscreen,
+          child: Icon(
+            isFullscreen
+                ? Icons.fullscreen_exit
+                : Icons.fullscreen,
+            color: Colors.white,
+          ),
+        ),
+      ],
+
+      showVideoProgressIndicator: !widget.isLive,
+      progressIndicatorColor: primaryBlue,
+      progressColors: ProgressBarColors(
+        playedColor: primaryBlue,
+        handleColor: primaryBlue,
+        bufferedColor: Colors.grey,
+        backgroundColor: Colors.white30,
       ),
     );
   }
 
   @override
-  void dispose() {
-    controller?.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    if (isFullscreen) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: buildPlayer(),
+          ),
+        ),
+      );
+    }
+
     return Card(
-      margin: const EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.only(bottom: 18),
       elevation: 2,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
@@ -1256,164 +1635,51 @@ class _VideoCardState extends State<VideoCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ====================================================
-          // VIDEO AREA
-          // ====================================================
+          buildPlayer(),
 
-          Stack(
-            children: [
-              if (controller != null && videoId != null)
-                YoutubePlayer(
-                  controller: controller!,
-                  topActions: const [],
-                  bottomActions: widget.isLive
-                      ? const [
-                          PlayPauseButton(),
-                          CurrentPosition(),
-                          SizedBox(width: 8),
-                          ProgressBar(
-                            isExpanded: true,
-                          ),
-                          SizedBox(width: 8),
-                          RemainingDuration(),
-                        ]
-                      : const [
-                          PlayPauseButton(),
-                          CurrentPosition(),
-                          SizedBox(width: 8),
-                          ProgressBar(
-                            isExpanded: true,
-                          ),
-                          SizedBox(width: 8),
-                          RemainingDuration(),
-                        ],
-                  showVideoProgressIndicator: false,
-                  aspectRatio: 16 / 9,
-                )
-              else
-                Container(
-                  width: double.infinity,
-                  height: 210,
-                  color: Colors.black12,
-                  alignment: Alignment.center,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        size: 50,
-                        color: Colors.red,
-                      ),
-                      const SizedBox(height: 10),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                        ),
-                        child: Text(
-                          errorMessage ??
-                              'Video load नहीं हुआ',
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
+          if (widget.isLive)
+            Container(
+              width: double.infinity,
+              color: Colors.red.withValues(alpha: 0.08),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 9,
+              ),
+              child: const Row(
+                children: [
+                  Icon(
+                    Icons.circle,
+                    size: 9,
+                    color: Colors.red,
                   ),
-                ),
-
-              // =================================================
-              // LIVE BADGE
-              // =================================================
-
-              if (widget.isLive &&
-                  controller != null &&
-                  videoId != null)
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
+                  SizedBox(width: 7),
+                  Text(
+                    'LIVE CLASS',
+                    style: TextStyle(
                       color: Colors.red,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.circle,
-                          color: Colors.white,
-                          size: 9,
-                        ),
-                        SizedBox(width: 6),
-                        Text(
-                          'LIVE',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-            ],
-          ),
-
-          // ====================================================
-          // VIDEO INFORMATION
-          // ====================================================
+                ],
+              ),
+            ),
 
           Padding(
             padding: const EdgeInsets.fromLTRB(
               16,
               15,
               16,
-              18,
+              16,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        widget.title,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-
-                    // LIVE / RECORDED LABEL
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 9,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: widget.isLive
-                            ? Colors.red.withValues(alpha: 0.10)
-                            : primaryBlue.withValues(alpha: 0.10),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        widget.isLive
-                            ? 'LIVE'
-                            : 'RECORDED',
-                        style: TextStyle(
-                          color: widget.isLive
-                              ? Colors.red
-                              : primaryBlue,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
+                Text(
+                  widget.title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
 
                 if (widget.description.isNotEmpty) ...[
@@ -1422,33 +1688,53 @@ class _VideoCardState extends State<VideoCard> {
                     widget.description,
                     style: const TextStyle(
                       color: Colors.grey,
-                      height: 1.4,
                     ),
                   ),
                 ],
 
-                if (widget.isLive) ...[
-                  const SizedBox(height: 10),
-                  const Row(
-                    children: [
-                      Icon(
-                        Icons.wifi_tethering,
-                        color: Colors.red,
+                const SizedBox(height: 12),
+
+                Row(
+                  children: [
+                    if (!widget.isLive)
+                      const Chip(
+                        avatar: Icon(
+                          Icons.video_library,
+                          size: 17,
+                        ),
+                        label: Text('Recorded'),
+                      )
+                    else
+                      const Chip(
+                        avatar: Icon(
+                          Icons.live_tv,
+                          size: 17,
+                        ),
+                        label: Text('Live'),
+                      ),
+
+                    const Spacer(),
+
+                    TextButton.icon(
+                      onPressed: showSpeedMenu,
+                      icon: const Icon(
+                        Icons.speed,
                         size: 19,
                       ),
-                      SizedBox(width: 7),
-                      Expanded(
-                        child: Text(
-                          'यह class live stream है।',
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                      label: Text(
+                        '${playbackSpeed}x',
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+
+                    IconButton(
+                      onPressed: toggleFullscreen,
+                      tooltip: 'Fullscreen',
+                      icon: const Icon(
+                        Icons.fullscreen,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
