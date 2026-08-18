@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 const Color primaryBlue = Color(0xFF5963A5);
 const Color backgroundColor = Color(0xFFF6F7FC);
@@ -1135,9 +1136,10 @@ class SubjectVideosPage extends StatelessWidget {
 
 // ============================================================
 // VIDEO CARD
+// VIDEO NOW PLAYS INSIDE THE APP
 // ============================================================
 
-class VideoCard extends StatelessWidget {
+class VideoCard extends StatefulWidget {
   final String title;
   final String description;
   final String videoUrl;
@@ -1149,113 +1151,140 @@ class VideoCard extends StatelessWidget {
     required this.videoUrl,
   });
 
-  Future<void> openVideo(BuildContext context) async {
-    if (videoUrl.trim().isEmpty) {
-      showMessage(context, 'Video अभी उपलब्ध नहीं है');
+  @override
+  State<VideoCard> createState() => _VideoCardState();
+}
+
+class _VideoCardState extends State<VideoCard> {
+  YoutubePlayerController? controller;
+  String? videoId;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final id = YoutubePlayer.convertUrlToId(
+      widget.videoUrl.trim(),
+    );
+
+    if (id == null || id.isEmpty) {
+      errorMessage = 'Video link गलत है';
       return;
     }
 
-    final uri = Uri.tryParse(videoUrl.trim());
+    videoId = id;
 
-    if (uri == null ||
-        !uri.hasScheme ||
-        (uri.scheme != 'http' && uri.scheme != 'https')) {
-      showMessage(context, 'Video link गलत है');
-      return;
-    }
-
-    try {
-      final opened = await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-      );
-
-      if (!opened && context.mounted) {
-        showMessage(context, 'Video खोलने में समस्या हुई');
-      }
-    } catch (_) {
-      if (context.mounted) {
-        showMessage(context, 'Video खोलने में समस्या हुई');
-      }
-    }
+    controller = YoutubePlayerController(
+      initialVideoId: id,
+      flags: const YoutubePlayerFlags(
+        autoPlay: false,
+        mute: false,
+        enableCaption: true,
+        controlsVisibleAtStart: true,
+        hideControls: false,
+        loop: false,
+      ),
+    );
   }
 
-  void showMessage(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+  @override
+  void dispose() {
+    controller?.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 14),
+      margin: const EdgeInsets.only(bottom: 18),
       elevation: 2,
+      clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: primaryBlue.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Icon(
-                    Icons.play_circle_outline,
-                    color: primaryBlue,
-                    size: 30,
-                  ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (controller != null && videoId != null)
+            YoutubePlayer(
+              controller: controller!,
+
+              // ==================================================
+              // CUSTOM CONTROLS
+              // Share / Watch Later / YouTube button removed.
+              // ==================================================
+
+              topActions: const [],
+
+              bottomActions: const [
+                PlayPauseButton(),
+                CurrentPosition(),
+                SizedBox(width: 8),
+                ProgressBar(
+                  isExpanded: true,
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
+                SizedBox(width: 8),
+                RemainingDuration(),
               ],
-            ),
-            if (description.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Text(
-                description,
-                style: const TextStyle(
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-            const SizedBox(height: 15),
-            SizedBox(
+
+              showVideoProgressIndicator: false,
+              aspectRatio: 16 / 9,
+            )
+          else
+            Container(
               width: double.infinity,
-              height: 50,
-              child: ElevatedButton.icon(
-                onPressed: () => openVideo(context),
-                icon: const Icon(Icons.play_arrow),
-                label: const Text(
-                  'WATCH VIDEO',
-                  style: TextStyle(
+              height: 210,
+              color: Colors.black12,
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 50,
+                    color: Colors.red,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    errorMessage ?? 'Video load नहीं हुआ',
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              16,
+              15,
+              16,
+              16,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.title,
+                  style: const TextStyle(
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryBlue,
-                  foregroundColor: Colors.white,
-                ),
-              ),
+
+                if (widget.description.isNotEmpty) ...[
+                  const SizedBox(height: 9),
+                  Text(
+                    widget.description,
+                    style: const TextStyle(
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
