@@ -12,11 +12,14 @@ const Color backgroundColor = Color(0xFFF6F7FC);
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // FIXED: orientation list is explicitly supplied.
   await SystemChrome.setPreferredOrientations(
-    const <DeviceOrientation>[
+    const [
       DeviceOrientation.portraitUp,
     ],
+  );
+
+  await SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.edgeToEdge,
   );
 
   try {
@@ -428,9 +431,7 @@ class _SignupScreenState extends State<SignupScreen> {
     final password = passwordController.text;
 
     if (name.isEmpty || email.isEmpty || password.isEmpty) {
-      showMessage(
-        'Name, Email और Password भरें',
-      );
+      showMessage('Name, Email और Password भरें');
       return;
     }
 
@@ -499,13 +500,9 @@ class _SignupScreenState extends State<SignupScreen> {
         Navigator.pop(context);
       }
     } on FirebaseAuthException catch (e) {
-      showMessage(
-        signupError(e.code),
-      );
+      showMessage(signupError(e.code));
     } catch (_) {
-      showMessage(
-        'Account बनाने में समस्या हुई',
-      );
+      showMessage('Account बनाने में समस्या हुई');
     } finally {
       if (mounted) {
         setState(() {
@@ -567,16 +564,14 @@ class _SignupScreenState extends State<SignupScreen> {
               controller: nameController,
               hint: 'Student Name',
               icon: Icons.person_outline,
-              textCapitalization:
-                  TextCapitalization.words,
+              textCapitalization: TextCapitalization.words,
             ),
             const SizedBox(height: 18),
             AppTextField(
               controller: emailController,
               hint: 'Email',
               icon: Icons.email_outlined,
-              keyboardType:
-                  TextInputType.emailAddress,
+              keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 18),
             AppTextField(
@@ -587,8 +582,7 @@ class _SignupScreenState extends State<SignupScreen> {
               suffix: IconButton(
                 onPressed: () {
                   setState(() {
-                    obscurePassword =
-                        !obscurePassword;
+                    obscurePassword = !obscurePassword;
                   });
                 },
                 icon: Icon(
@@ -655,9 +649,7 @@ class _ForgotPasswordScreenState
     final email = emailController.text.trim();
 
     if (email.isEmpty) {
-      showMessage(
-        'Registered Email डालें',
-      );
+      showMessage('Registered Email डालें');
       return;
     }
 
@@ -666,8 +658,7 @@ class _ForgotPasswordScreenState
     });
 
     try {
-      await FirebaseAuth.instance
-          .sendPasswordResetEmail(
+      await FirebaseAuth.instance.sendPasswordResetEmail(
         email: email,
       );
 
@@ -677,13 +668,9 @@ class _ForgotPasswordScreenState
         );
       }
     } on FirebaseAuthException catch (e) {
-      showMessage(
-        'Password reset failed: ${e.code}',
-      );
+      showMessage('Password reset failed: ${e.code}');
     } catch (_) {
-      showMessage(
-        'Password reset में समस्या हुई',
-      );
+      showMessage('Password reset में समस्या हुई');
     } finally {
       if (mounted) {
         setState(() {
@@ -732,16 +719,14 @@ class _ForgotPasswordScreenState
               controller: emailController,
               hint: 'Registered Email',
               icon: Icons.email_outlined,
-              keyboardType:
-                  TextInputType.emailAddress,
+              keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 25),
             SizedBox(
               width: double.infinity,
               height: 58,
               child: ElevatedButton(
-                onPressed:
-                    loading ? null : resetPassword,
+                onPressed: loading ? null : resetPassword,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryBlue,
                   foregroundColor: Colors.white,
@@ -857,20 +842,17 @@ class HomePage extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(18),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
                 color: primaryBlue,
-                borderRadius:
-                    BorderRadius.circular(26),
+                borderRadius: BorderRadius.circular(26),
               ),
               child: const Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Welcome to SR STUDIES',
@@ -1007,8 +989,7 @@ class SubjectSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         GroupTitle(
           icon: icon,
@@ -1051,9 +1032,7 @@ class SubjectCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       height: 65,
-      margin: const EdgeInsets.only(
-        bottom: 10,
-      ),
+      margin: const EdgeInsets.only(bottom: 10),
       child: ElevatedButton(
         onPressed: () {
           Navigator.push(
@@ -1061,8 +1040,7 @@ class SubjectCard extends StatelessWidget {
             MaterialPageRoute(
               builder: (_) => SubjectVideosPage(
                 subjectName: title,
-                firestoreName:
-                    firestoreSubjectName,
+                firestoreName: firestoreSubjectName,
               ),
             ),
           );
@@ -1072,8 +1050,7 @@ class SubjectCard extends StatelessWidget {
           foregroundColor: Colors.black87,
           elevation: 1,
           shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(17),
+            borderRadius: BorderRadius.circular(17),
           ),
         ),
         child: Row(
@@ -1082,11 +1059,8 @@ class SubjectCard extends StatelessWidget {
               width: 43,
               height: 43,
               decoration: BoxDecoration(
-                color: primaryBlue.withValues(
-                  alpha: 0.10,
-                ),
-                borderRadius:
-                    BorderRadius.circular(13),
+                color: primaryBlue.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(13),
               ),
               child: Icon(
                 icon,
@@ -1116,14 +1090,6 @@ class SubjectCard extends StatelessWidget {
 
 // ============================================================
 // SUBJECT VIDEOS
-//
-// Supports BOTH:
-//
-// 1. subjects/history/videos
-//
-// 2. history/videos/history
-//
-// The second structure matches the Firebase screenshot.
 // ============================================================
 
 class SubjectVideosPage extends StatelessWidget {
@@ -1142,10 +1108,11 @@ class SubjectVideosPage extends StatelessWidget {
             QueryDocumentSnapshot<Map<String, dynamic>>>
         allVideos = {};
 
-    // --------------------------------------------------------
-    // STRUCTURE 1:
-    // subjects/{subject}/videos/{video}
-    // --------------------------------------------------------
+    // ----------------------------------------------------------
+    // STRUCTURE 1
+    //
+    // subjects/history/videos/video1
+    // ----------------------------------------------------------
 
     try {
       final snapshot = await FirebaseFirestore.instance
@@ -1157,17 +1124,13 @@ class SubjectVideosPage extends StatelessWidget {
       for (final doc in snapshot.docs) {
         allVideos['subjects_${doc.id}'] = doc;
       }
-    } catch (_) {
-      // Ignore and try second structure.
-    }
+    } catch (_) {}
 
-    // --------------------------------------------------------
-    // STRUCTURE 2:
-    // {subject}/videos/{subject}/{video}
+    // ----------------------------------------------------------
+    // STRUCTURE 2
     //
-    // Example from screenshot:
-    // history / videos / history
-    // --------------------------------------------------------
+    // history/videos/history/video1
+    // ----------------------------------------------------------
 
     try {
       final snapshot = await FirebaseFirestore.instance
@@ -1179,9 +1142,27 @@ class SubjectVideosPage extends StatelessWidget {
       for (final doc in snapshot.docs) {
         allVideos['nested_${doc.id}'] = doc;
       }
-    } catch (_) {
-      // Ignore.
-    }
+    } catch (_) {}
+
+    // ----------------------------------------------------------
+    // STRUCTURE 3
+    //
+    // history/videos/video1
+    //
+    // This is also supported.
+    // ----------------------------------------------------------
+
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection(firestoreName)
+          .doc('videos')
+          .collection('items')
+          .get();
+
+      for (final doc in snapshot.docs) {
+        allVideos['items_${doc.id}'] = doc;
+      }
+    } catch (_) {}
 
     final videos = allVideos.values.toList();
 
@@ -1189,8 +1170,7 @@ class SubjectVideosPage extends StatelessWidget {
       final aTime = a.data()['createdAt'];
       final bTime = b.data()['createdAt'];
 
-      if (aTime is Timestamp &&
-          bTime is Timestamp) {
+      if (aTime is Timestamp && bTime is Timestamp) {
         return bTime.compareTo(aTime);
       }
 
@@ -1227,11 +1207,9 @@ class SubjectVideosPage extends StatelessWidget {
           if (snapshot.hasError) {
             return Center(
               child: Padding(
-                padding:
-                    const EdgeInsets.all(25),
+                padding: const EdgeInsets.all(25),
                 child: Text(
-                  'Videos load नहीं हो सके।\n\n'
-                  '${snapshot.error}',
+                  'Videos load नहीं हो सके।\n\n${snapshot.error}',
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -1243,27 +1221,22 @@ class SubjectVideosPage extends StatelessWidget {
           if (docs.isEmpty) {
             return const Center(
               child: Padding(
-                padding:
-                    EdgeInsets.all(25),
+                padding: EdgeInsets.all(25),
                 child: Column(
-                  mainAxisAlignment:
-                      MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      Icons
-                          .video_library_outlined,
+                      Icons.video_library_outlined,
                       size: 75,
                       color: primaryBlue,
                     ),
                     SizedBox(height: 20),
                     Text(
                       'अभी कोई video उपलब्ध नहीं है',
-                      textAlign:
-                          TextAlign.center,
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 20,
-                        fontWeight:
-                            FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
@@ -1273,27 +1246,26 @@ class SubjectVideosPage extends StatelessWidget {
           }
 
           return ListView.builder(
-            padding:
-                const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(18),
             itemCount: docs.length,
-            itemBuilder:
-                (context, index) {
-              final data =
-                  docs[index].data();
+            itemBuilder: (context, index) {
+              final data = docs[index].data();
 
               final title =
                   (data['title'] ??
+                          data['name'] ??
                           'Study Video')
                       .toString();
 
               final description =
-                  (data['description'] ??
-                          '')
-                      .toString();
+                  (data['description'] ?? '').toString();
 
-              final videoUrl =
-                  (data['videoUrl'] ?? '')
-                      .toString();
+              // ------------------------------------------------
+              // IMPORTANT:
+              // Multiple possible Firestore field names.
+              // ------------------------------------------------
+
+              final videoUrl = getVideoValue(data);
 
               final isLive =
                   data['isLive'] == true ||
@@ -1301,8 +1273,7 @@ class SubjectVideosPage extends StatelessWidget {
 
               return VideoCard(
                 title: title,
-                description:
-                    description,
+                description: description,
                 videoUrl: videoUrl,
                 isLive: isLive,
               );
@@ -1311,6 +1282,34 @@ class SubjectVideosPage extends StatelessWidget {
         },
       ),
     );
+  }
+
+  String getVideoValue(Map<String, dynamic> data) {
+    const possibleFields = [
+      'videoUrl',
+      'videoURL',
+      'youtubeUrl',
+      'youtubeURL',
+      'url',
+      'link',
+      'videoId',
+      'youtubeId',
+      'id',
+    ];
+
+    for (final field in possibleFields) {
+      final value = data[field];
+
+      if (value != null) {
+        final text = value.toString().trim();
+
+        if (text.isNotEmpty) {
+          return text;
+        }
+      }
+    }
+
+    return '';
   }
 }
 
@@ -1333,12 +1332,10 @@ class VideoCard extends StatefulWidget {
   });
 
   @override
-  State<VideoCard> createState() =>
-      _VideoCardState();
+  State<VideoCard> createState() => _VideoCardState();
 }
 
-class _VideoCardState
-    extends State<VideoCard> {
+class _VideoCardState extends State<VideoCard> {
   YoutubePlayerController? controller;
 
   String? videoId;
@@ -1366,22 +1363,163 @@ class _VideoCardState
     initializePlayer();
   }
 
-  void initializePlayer() {
-    final id =
-        YoutubePlayer.convertUrlToId(
-      widget.videoUrl.trim(),
+  // ==========================================================
+  // YOUTUBE ID PARSER
+  // ==========================================================
+
+  String? extractYoutubeId(String input) {
+    String value = input.trim();
+
+    if (value.isEmpty) {
+      return null;
+    }
+
+    // Remove surrounding spaces.
+    value = value.trim();
+
+    // --------------------------------------------------------
+    // If user directly entered a YouTube video ID.
+    //
+    // Normal YouTube IDs are 11 characters.
+    // --------------------------------------------------------
+
+    final directId = RegExp(
+      r'^[A-Za-z0-9_-]{11}$',
     );
 
+    if (directId.hasMatch(value)) {
+      return value;
+    }
+
+    // --------------------------------------------------------
+    // Remove accidental quotes.
+    // --------------------------------------------------------
+
+    value = value.replaceAll('"', '').replaceAll("'", '');
+
+    Uri? uri = Uri.tryParse(value);
+
+    // If URL has no scheme, try https://
+    if (uri == null || uri.host.isEmpty) {
+      uri = Uri.tryParse('https://$value');
+    }
+
+    if (uri == null) {
+      return null;
+    }
+
+    final host = uri.host.toLowerCase();
+
+    // --------------------------------------------------------
+    // youtube.com
+    // --------------------------------------------------------
+
+    if (host == 'youtube.com' ||
+        host == 'www.youtube.com' ||
+        host == 'm.youtube.com' ||
+        host == 'music.youtube.com') {
+      // /watch?v=XXXXXXXXXXX
+      final queryId = uri.queryParameters['v'];
+
+      if (queryId != null &&
+          directId.hasMatch(queryId)) {
+        return queryId;
+      }
+
+      // /shorts/XXXXXXXXXXX
+      if (uri.pathSegments.isNotEmpty &&
+          uri.pathSegments.first == 'shorts' &&
+          uri.pathSegments.length >= 2) {
+        final id = uri.pathSegments[1];
+
+        if (directId.hasMatch(id)) {
+          return id;
+        }
+      }
+
+      // /embed/XXXXXXXXXXX
+      if (uri.pathSegments.isNotEmpty &&
+          uri.pathSegments.first == 'embed' &&
+          uri.pathSegments.length >= 2) {
+        final id = uri.pathSegments[1];
+
+        if (directId.hasMatch(id)) {
+          return id;
+        }
+      }
+
+      // /live/XXXXXXXXXXX
+      if (uri.pathSegments.isNotEmpty &&
+          uri.pathSegments.first == 'live' &&
+          uri.pathSegments.length >= 2) {
+        final id = uri.pathSegments[1];
+
+        if (directId.hasMatch(id)) {
+          return id;
+        }
+      }
+    }
+
+    // --------------------------------------------------------
+    // youtu.be/XXXXXXXXXXX
+    // --------------------------------------------------------
+
+    if (host == 'youtu.be' ||
+        host == 'www.youtu.be') {
+      if (uri.pathSegments.isNotEmpty) {
+        final id = uri.pathSegments.first;
+
+        if (directId.hasMatch(id)) {
+          return id;
+        }
+      }
+    }
+
+    // --------------------------------------------------------
+    // Last fallback:
+    // Search the entire string for an 11-character YouTube ID.
+    // --------------------------------------------------------
+
+    final fallback = RegExp(
+      r'(?:v=|youtu\.be/|/shorts/|/embed/|/live/)([A-Za-z0-9_-]{11})',
+      caseSensitive: false,
+    );
+
+    final match = fallback.firstMatch(value);
+
+    if (match != null) {
+      return match.group(1);
+    }
+
+    return null;
+  }
+
+  // ==========================================================
+  // INITIALIZE PLAYER
+  // ==========================================================
+
+  void initializePlayer() {
+    final input = widget.videoUrl.trim();
+
+    if (input.isEmpty) {
+      setStateSafeError(
+        'Video link Firestore में नहीं मिला',
+      );
+      return;
+    }
+
+    final id = extractYoutubeId(input);
+
     if (id == null || id.isEmpty) {
-      errorMessage =
-          'Video link गलत है';
+      setStateSafeError(
+        'YouTube video link गलत है\n\n$linkPreview',
+      );
       return;
     }
 
     videoId = id;
 
-    controller =
-        YoutubePlayerController(
+    controller = YoutubePlayerController(
       initialVideoId: id,
       flags: const YoutubePlayerFlags(
         autoPlay: false,
@@ -1394,35 +1532,47 @@ class _VideoCardState
       ),
     );
 
-    controller!.addListener(
-      playerListener,
-    );
+    controller!.addListener(playerListener);
   }
+
+  String get linkPreview {
+    if (widget.videoUrl.length <= 100) {
+      return widget.videoUrl;
+    }
+
+    return '${widget.videoUrl.substring(0, 100)}...';
+  }
+
+  void setStateSafeError(String message) {
+    errorMessage = message;
+  }
+
+  // ==========================================================
+  // PLAYER LISTENER
+  // ==========================================================
 
   void playerListener() {
     if (!mounted || controller == null) {
       return;
     }
 
-    if (controller!.value.isFullScreen !=
-        isFullscreen) {
+    final fullscreen =
+        controller!.value.isFullScreen;
+
+    if (fullscreen != isFullscreen) {
       setState(() {
-        isFullscreen =
-            controller!.value.isFullScreen;
+        isFullscreen = fullscreen;
       });
     }
   }
 
   @override
   void dispose() {
-    controller?.removeListener(
-      playerListener,
-    );
-
+    controller?.removeListener(playerListener);
     controller?.dispose();
 
     SystemChrome.setPreferredOrientations(
-      const <DeviceOrientation>[
+      const [
         DeviceOrientation.portraitUp,
       ],
     );
@@ -1441,14 +1591,12 @@ class _VideoCardState
   Future<void> enterFullscreen() async {
     if (controller == null) return;
 
-    await SystemChrome
-        .setEnabledSystemUIMode(
+    await SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.immersiveSticky,
     );
 
-    await SystemChrome
-        .setPreferredOrientations(
-      const <DeviceOrientation>[
+    await SystemChrome.setPreferredOrientations(
+      const [
         DeviceOrientation.landscapeLeft,
         DeviceOrientation.landscapeRight,
       ],
@@ -1468,14 +1616,12 @@ class _VideoCardState
 
     controller!.toggleFullScreenMode();
 
-    await SystemChrome
-        .setEnabledSystemUIMode(
+    await SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.edgeToEdge,
     );
 
-    await SystemChrome
-        .setPreferredOrientations(
-      const <DeviceOrientation>[
+    await SystemChrome.setPreferredOrientations(
+      const [
         DeviceOrientation.portraitUp,
       ],
     );
@@ -1504,9 +1650,11 @@ class _VideoCardState
 
     controller!.setPlaybackRate(speed);
 
-    setState(() {
-      playbackSpeed = speed;
-    });
+    if (mounted) {
+      setState(() {
+        playbackSpeed = speed;
+      });
+    }
   }
 
   void showSpeedMenu() {
@@ -1516,54 +1664,41 @@ class _VideoCardState
       builder: (context) {
         return SafeArea(
           child: Padding(
-            padding:
-                const EdgeInsets.fromLTRB(
+            padding: const EdgeInsets.fromLTRB(
               20,
               10,
               20,
               25,
             ),
             child: Column(
-              mainAxisSize:
-                  MainAxisSize.min,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
                   'Playback Speed',
                   style: TextStyle(
                     fontSize: 21,
-                    fontWeight:
-                        FontWeight.bold,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 15),
                 ...speeds.map(
                   (speed) => ListTile(
                     leading: Icon(
-                      speed ==
-                              playbackSpeed
-                          ? Icons
-                              .radio_button_checked
-                          : Icons
-                              .radio_button_off,
-                      color:
-                          primaryBlue,
+                      speed == playbackSpeed
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_off,
+                      color: primaryBlue,
                     ),
                     title: Text(
                       '${speed.toStringAsFixed(
-                        speed ==
-                                speed
-                                    .roundToDouble()
+                        speed == speed.roundToDouble()
                             ? 0
                             : 2,
                       )}x',
                     ),
                     onTap: () {
-                      changeSpeed(
-                        speed,
-                      );
-                      Navigator.pop(
-                        context,
-                      );
+                      changeSpeed(speed);
+                      Navigator.pop(context);
                     },
                   ),
                 ),
@@ -1588,13 +1723,15 @@ class _VideoCardState
       controller!.mute();
     }
 
-    setState(() {
-      muted = !muted;
-    });
+    if (mounted) {
+      setState(() {
+        muted = !muted;
+      });
+    }
   }
 
   // ==========================================================
-  // QUALITY
+  // QUALITY INFO
   // ==========================================================
 
   void showQualityInfo() {
@@ -1604,16 +1741,14 @@ class _VideoCardState
       builder: (context) {
         return const SafeArea(
           child: Padding(
-            padding:
-                EdgeInsets.fromLTRB(
+            padding: EdgeInsets.fromLTRB(
               24,
               15,
               24,
               30,
             ),
             child: Column(
-              mainAxisSize:
-                  MainAxisSize.min,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
                   Icons.high_quality,
@@ -1625,15 +1760,13 @@ class _VideoCardState
                   'Video Quality',
                   style: TextStyle(
                     fontSize: 22,
-                    fontWeight:
-                        FontWeight.bold,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 SizedBox(height: 12),
                 Text(
                   'YouTube video की quality internet speed और YouTube player के अनुसार automatically adjust होती है।',
-                  textAlign:
-                      TextAlign.center,
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -1644,34 +1777,72 @@ class _VideoCardState
   }
 
   // ==========================================================
+  // OPEN YOUTUBE EXTERNALLY
+  // ==========================================================
+
+  Future<void> openYoutube() async {
+    if (videoId == null) return;
+
+    final uri = Uri.parse(
+      'https://www.youtube.com/watch?v=$videoId',
+    );
+
+    try {
+      await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'YouTube खोलने में समस्या हुई',
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  // ==========================================================
   // PLAYER
   // ==========================================================
 
   Widget buildPlayer() {
-    if (controller == null ||
-        videoId == null) {
+    if (controller == null || videoId == null) {
       return Container(
         width: double.infinity,
         height: 210,
         color: Colors.black12,
         alignment: Alignment.center,
-        child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.error_outline,
-              size: 50,
-              color: Colors.red,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              errorMessage ??
-                  'Video load नहीं हुआ',
-              textAlign:
-                  TextAlign.center,
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                size: 50,
+                color: Colors.red,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                errorMessage ??
+                    'Video load नहीं हुआ',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 14),
+              if (widget.videoUrl.trim().isNotEmpty)
+                OutlinedButton.icon(
+                  onPressed: openYoutube,
+                  icon: const Icon(Icons.open_in_new),
+                  label: const Text(
+                    'YouTube पर खोलें',
+                  ),
+                ),
+            ],
+          ),
         ),
       );
     }
@@ -1679,23 +1850,20 @@ class _VideoCardState
     return YoutubePlayer(
       controller: controller!,
       aspectRatio: 16 / 9,
+
       topActions: [
         if (widget.isLive)
           Container(
-            padding:
-                const EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
               horizontal: 9,
               vertical: 5,
             ),
-            decoration:
-                BoxDecoration(
+            decoration: BoxDecoration(
               color: Colors.red,
-              borderRadius:
-                  BorderRadius.circular(5),
+              borderRadius: BorderRadius.circular(5),
             ),
             child: const Row(
-              mainAxisSize:
-                  MainAxisSize.min,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
                   Icons.circle,
@@ -1707,8 +1875,7 @@ class _VideoCardState
                   'LIVE',
                   style: TextStyle(
                     color: Colors.white,
-                    fontWeight:
-                        FontWeight.bold,
+                    fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
                 ),
@@ -1719,8 +1886,7 @@ class _VideoCardState
         GestureDetector(
           onTap: showQualityInfo,
           child: const Padding(
-            padding:
-                EdgeInsets.all(8),
+            padding: EdgeInsets.all(8),
             child: Icon(
               Icons.high_quality,
               color: Colors.white,
@@ -1728,8 +1894,10 @@ class _VideoCardState
           ),
         ),
       ],
+
       bottomActions: [
         const PlayPauseButton(),
+
         if (!widget.isLive) ...[
           const SizedBox(width: 8),
           const CurrentPosition(),
@@ -1746,13 +1914,14 @@ class _VideoCardState
               'LIVE',
               style: TextStyle(
                 color: Colors.white,
-                fontWeight:
-                    FontWeight.bold,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
         ],
+
         const SizedBox(width: 8),
+
         GestureDetector(
           onTap: toggleMute,
           child: Icon(
@@ -1762,36 +1931,35 @@ class _VideoCardState
             color: Colors.white,
           ),
         ),
+
         const SizedBox(width: 10),
+
         GestureDetector(
           onTap: showSpeedMenu,
           child: Container(
-            padding:
-                const EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
               horizontal: 7,
               vertical: 4,
             ),
-            decoration:
-                BoxDecoration(
+            decoration: BoxDecoration(
               border: Border.all(
                 color: Colors.white,
               ),
-              borderRadius:
-                  BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
               '${playbackSpeed}x',
-              style:
-                  const TextStyle(
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 12,
-                fontWeight:
-                    FontWeight.bold,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
         ),
+
         const SizedBox(width: 10),
+
         GestureDetector(
           onTap: showQualityInfo,
           child: const Icon(
@@ -1799,7 +1967,9 @@ class _VideoCardState
             color: Colors.white,
           ),
         ),
+
         const SizedBox(width: 8),
+
         GestureDetector(
           onTap: toggleFullscreen,
           child: Icon(
@@ -1810,10 +1980,13 @@ class _VideoCardState
           ),
         ),
       ],
+
       showVideoProgressIndicator:
           !widget.isLive,
+
       progressIndicatorColor:
           primaryBlue,
+
       progressColors:
           const ProgressBarColors(
         playedColor: primaryBlue,
@@ -1831,10 +2004,7 @@ class _VideoCardState
         backgroundColor: Colors.black,
         body: Center(
           child: SizedBox(
-            width:
-                MediaQuery.of(context)
-                    .size
-                    .width,
+            width: MediaQuery.of(context).size.width,
             child: buildPlayer(),
           ),
         ),
@@ -1842,30 +2012,26 @@ class _VideoCardState
     }
 
     return Card(
-      margin:
-          const EdgeInsets.only(
+      margin: const EdgeInsets.only(
         bottom: 18,
       ),
       elevation: 2,
-      clipBehavior:
-          Clip.antiAlias,
-      shape:
-          RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(18),
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           buildPlayer(),
+
           if (widget.isLive)
             Container(
               width: double.infinity,
-              color: Colors.red
-                  .withValues(alpha: 0.08),
-              padding:
-                  const EdgeInsets.symmetric(
+              color: Colors.red.withValues(
+                alpha: 0.08,
+              ),
+              padding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 9,
               ),
@@ -1881,16 +2047,15 @@ class _VideoCardState
                     'LIVE CLASS',
                     style: TextStyle(
                       color: Colors.red,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
               ),
             ),
+
           Padding(
-            padding:
-                const EdgeInsets.fromLTRB(
+            padding: const EdgeInsets.fromLTRB(
               16,
               15,
               16,
@@ -1904,34 +2069,31 @@ class _VideoCardState
                   widget.title,
                   style: const TextStyle(
                     fontSize: 18,
-                    fontWeight:
-                        FontWeight.bold,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                if (widget
-                    .description
-                    .isNotEmpty) ...[
+
+                if (widget.description.isNotEmpty) ...[
                   const SizedBox(height: 9),
                   Text(
                     widget.description,
-                    style:
-                        const TextStyle(
+                    style: const TextStyle(
                       color: Colors.grey,
                     ),
                   ),
                 ],
+
                 const SizedBox(height: 12),
+
                 Row(
                   children: [
                     if (!widget.isLive)
                       const Chip(
                         avatar: Icon(
-                          Icons
-                              .video_library,
+                          Icons.video_library,
                           size: 17,
                         ),
-                        label:
-                            Text('Recorded'),
+                        label: Text('Recorded'),
                       )
                     else
                       const Chip(
@@ -1939,13 +2101,13 @@ class _VideoCardState
                           Icons.live_tv,
                           size: 17,
                         ),
-                        label:
-                            Text('Live'),
+                        label: Text('Live'),
                       ),
+
                     const Spacer(),
+
                     TextButton.icon(
-                      onPressed:
-                          showSpeedMenu,
+                      onPressed: showSpeedMenu,
                       icon: const Icon(
                         Icons.speed,
                         size: 19,
@@ -1954,13 +2116,11 @@ class _VideoCardState
                         '${playbackSpeed}x',
                       ),
                     ),
+
                     IconButton(
-                      onPressed:
-                          toggleFullscreen,
-                      tooltip:
-                          'Fullscreen',
-                      icon:
-                          const Icon(
+                      onPressed: toggleFullscreen,
+                      tooltip: 'Fullscreen',
+                      icon: const Icon(
                         Icons.fullscreen,
                       ),
                     ),
@@ -1979,8 +2139,7 @@ class _VideoCardState
 // PRACTICE
 // ============================================================
 
-class PracticePage
-    extends StatelessWidget {
+class PracticePage extends StatelessWidget {
   const PracticePage({super.key});
 
   @override
@@ -1998,8 +2157,7 @@ class PracticePage
 // NOTES
 // ============================================================
 
-class NotesPage
-    extends StatelessWidget {
+class NotesPage extends StatelessWidget {
   const NotesPage({super.key});
 
   @override
@@ -2017,8 +2175,7 @@ class NotesPage
 // SIMPLE PAGE
 // ============================================================
 
-class SimplePage
-    extends StatelessWidget {
+class SimplePage extends StatelessWidget {
   final String title;
   final String message;
   final IconData icon;
@@ -2037,15 +2194,13 @@ class SimplePage
         title: Text(
           title,
           style: const TextStyle(
-            fontWeight:
-                FontWeight.bold,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
       body: Center(
         child: Padding(
-          padding:
-              const EdgeInsets.all(25),
+          padding: const EdgeInsets.all(25),
           child: Column(
             mainAxisAlignment:
                 MainAxisAlignment.center,
@@ -2058,8 +2213,7 @@ class SimplePage
               const SizedBox(height: 20),
               Text(
                 message,
-                textAlign:
-                    TextAlign.center,
+                textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 18,
                   color: Colors.grey,
@@ -2077,8 +2231,7 @@ class SimplePage
 // PROFILE
 // ============================================================
 
-class ProfileScreen
-    extends StatefulWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
@@ -2088,8 +2241,7 @@ class ProfileScreen
 
 class _ProfileScreenState
     extends State<ProfileScreen> {
-  final nameController =
-      TextEditingController();
+  final nameController = TextEditingController();
 
   bool saving = false;
 
@@ -2098,9 +2250,7 @@ class _ProfileScreenState
     super.initState();
 
     nameController.text =
-        FirebaseAuth.instance.currentUser
-                ?.displayName ??
-            '';
+        FirebaseAuth.instance.currentUser?.displayName ?? '';
   }
 
   @override
@@ -2110,13 +2260,10 @@ class _ProfileScreenState
   }
 
   Future<void> changeName() async {
-    final name =
-        nameController.text.trim();
+    final name = nameController.text.trim();
 
     if (name.isEmpty) {
-      showMessage(
-        'Name खाली नहीं हो सकता',
-      );
+      showMessage('Name खाली नहीं हो सकता');
       return;
     }
 
@@ -2129,15 +2276,11 @@ class _ProfileScreenState
           FirebaseAuth.instance.currentUser;
 
       if (user == null) {
-        showMessage(
-          'User login नहीं है',
-        );
+        showMessage('User login नहीं है');
         return;
       }
 
-      await user.updateDisplayName(
-        name,
-      );
+      await user.updateDisplayName(name);
 
       await FirebaseFirestore.instance
           .collection('users')
@@ -2173,15 +2316,13 @@ class _ProfileScreenState
   }
 
   Future<void> logout() async {
-    await FirebaseAuth.instance
-        .signOut();
+    await FirebaseAuth.instance.signOut();
   }
 
   void showMessage(String message) {
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context)
-        .showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
       ),
@@ -2198,118 +2339,117 @@ class _ProfileScreenState
         title: const Text(
           'Profile',
           style: TextStyle(
-            fontWeight:
-                FontWeight.bold,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
       body: SingleChildScrollView(
-        padding:
-            const EdgeInsets.all(25),
+        padding: const EdgeInsets.all(25),
         child: Column(
           children: [
             const CircleAvatar(
               radius: 52,
-              backgroundColor:
-                  primaryBlue,
+              backgroundColor: primaryBlue,
               child: Icon(
                 Icons.person,
                 size: 55,
                 color: Colors.white,
               ),
             ),
+
             const SizedBox(height: 18),
+
             const Text(
               'Student Profile',
               style: TextStyle(
                 fontSize: 27,
-                fontWeight:
-                    FontWeight.bold,
+                fontWeight: FontWeight.bold,
               ),
             ),
+
             const SizedBox(height: 28),
+
             AppTextField(
-              controller:
-                  nameController,
+              controller: nameController,
               hint: 'Student Name',
-              icon:
-                  Icons.person_outline,
+              icon: Icons.person_outline,
               textCapitalization:
                   TextCapitalization.words,
             ),
+
             const SizedBox(height: 12),
+
             Text(
               user?.email ?? '',
               style: const TextStyle(
                 color: Colors.grey,
               ),
             ),
+
             const SizedBox(height: 20),
+
             SizedBox(
               width: double.infinity,
               height: 55,
               child: ElevatedButton(
                 onPressed:
-                    saving
-                        ? null
-                        : changeName,
-                style:
-                    ElevatedButton.styleFrom(
-                  backgroundColor:
-                      primaryBlue,
-                  foregroundColor:
-                      Colors.white,
+                    saving ? null : changeName,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryBlue,
+                  foregroundColor: Colors.white,
                 ),
                 child: saving
                     ? const CircularProgressIndicator(
-                        color:
-                            Colors.white,
+                        color: Colors.white,
                       )
                     : const Text(
                         'CHANGE NAME',
                       ),
               ),
             ),
+
             const SizedBox(height: 35),
+
             const Align(
-              alignment:
-                  Alignment.centerLeft,
+              alignment: Alignment.centerLeft,
               child: Text(
                 'Admin Social Media',
                 style: TextStyle(
                   fontSize: 21,
-                  fontWeight:
-                      FontWeight.bold,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
+
             const SizedBox(height: 15),
+
             SocialButton(
-              icon:
-                  Icons.play_circle_fill,
+              icon: Icons.play_circle_fill,
               title: 'YouTube',
               url:
                   'https://youtube.com/@rceditor999',
             ),
+
             SocialButton(
-              icon:
-                  Icons.camera_alt,
+              icon: Icons.camera_alt,
               title: 'Instagram',
               url:
                   'https://www.instagram.com/rceditor999/',
             ),
+
             SocialButton(
               icon: Icons.send,
               title: 'Telegram',
               url:
                   'https://t.me/RCEDITOR999',
             ),
+
             const SizedBox(height: 25),
+
             SizedBox(
               width: double.infinity,
               height: 55,
-              child:
-                  OutlinedButton.icon(
+              child: OutlinedButton.icon(
                 onPressed: logout,
                 icon: const Icon(
                   Icons.logout,
@@ -2317,8 +2457,7 @@ class _ProfileScreenState
                 label: const Text(
                   'LOGOUT',
                   style: TextStyle(
-                    fontWeight:
-                        FontWeight.bold,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -2334,8 +2473,7 @@ class _ProfileScreenState
 // SOCIAL BUTTON
 // ============================================================
 
-class SocialButton
-    extends StatelessWidget {
+class SocialButton extends StatelessWidget {
   final IconData icon;
   final String title;
   final String url;
@@ -2348,9 +2486,9 @@ class SocialButton
   });
 
   Future<void> openLink(
-      BuildContext context) async {
-    final uri =
-        Uri.tryParse(url);
+    BuildContext context,
+  ) async {
+    final uri = Uri.tryParse(url);
 
     if (uri == null ||
         !uri.hasScheme ||
@@ -2364,15 +2502,12 @@ class SocialButton
     }
 
     try {
-      final opened =
-          await launchUrl(
+      final opened = await launchUrl(
         uri,
-        mode:
-            LaunchMode.externalApplication,
+        mode: LaunchMode.externalApplication,
       );
 
-      if (!opened &&
-          context.mounted) {
+      if (!opened && context.mounted) {
         showMessage(
           context,
           '$title खोलने में समस्या हुई',
@@ -2392,8 +2527,7 @@ class SocialButton
     BuildContext context,
     String message,
   ) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
       ),
@@ -2404,22 +2538,17 @@ class SocialButton
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      margin:
-          const EdgeInsets.only(
+      margin: const EdgeInsets.only(
         bottom: 10,
       ),
       child: Material(
         color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16),
         child: InkWell(
-          borderRadius:
-              BorderRadius.circular(16),
-          onTap: () =>
-              openLink(context),
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => openLink(context),
           child: Padding(
-            padding:
-                const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Icon(
@@ -2427,16 +2556,13 @@ class SocialButton
                   size: 28,
                   color: primaryBlue,
                 ),
-                const SizedBox(
-                    width: 15),
+                const SizedBox(width: 15),
                 Expanded(
                   child: Text(
                     title,
-                    style:
-                        const TextStyle(
+                    style: const TextStyle(
                       fontSize: 17,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
@@ -2456,8 +2582,7 @@ class SocialButton
 // GROUP TITLE
 // ============================================================
 
-class GroupTitle
-    extends StatelessWidget {
+class GroupTitle extends StatelessWidget {
   final IconData icon;
   final String title;
 
@@ -2470,8 +2595,7 @@ class GroupTitle
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-          const EdgeInsets.only(
+      padding: const EdgeInsets.only(
         left: 4,
         bottom: 10,
       ),
@@ -2486,11 +2610,9 @@ class GroupTitle
           Expanded(
             child: Text(
               title,
-              style:
-                  const TextStyle(
+              style: const TextStyle(
                 fontSize: 19,
-                fontWeight:
-                    FontWeight.bold,
+                fontWeight: FontWeight.bold,
                 color: primaryBlue,
               ),
             ),
@@ -2505,17 +2627,14 @@ class GroupTitle
 // TEXT FIELD
 // ============================================================
 
-class AppTextField
-    extends StatelessWidget {
-  final TextEditingController
-      controller;
+class AppTextField extends StatelessWidget {
+  final TextEditingController controller;
   final String hint;
   final IconData icon;
   final bool obscureText;
   final Widget? suffix;
   final TextInputType? keyboardType;
-  final TextCapitalization
-      textCapitalization;
+  final TextCapitalization textCapitalization;
 
   const AppTextField({
     super.key,
@@ -2535,51 +2654,32 @@ class AppTextField
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
-      textCapitalization:
-          textCapitalization,
-      decoration:
-          InputDecoration(
+      textCapitalization: textCapitalization,
+      decoration: InputDecoration(
         hintText: hint,
-        prefixIcon:
-            Icon(icon),
+        prefixIcon: Icon(icon),
         suffixIcon: suffix,
         filled: true,
-        fillColor:
-            Colors.white,
-        border:
-            OutlineInputBorder(
-          borderRadius:
-              BorderRadius.circular(
-                  18),
-          borderSide:
-              BorderSide.none,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide.none,
         ),
-        enabledBorder:
-            OutlineInputBorder(
-          borderRadius:
-              BorderRadius.circular(
-                  18),
-          borderSide:
-              BorderSide(
-            color:
-                Colors.grey.shade300,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide(
+            color: Colors.grey.shade300,
           ),
         ),
-        focusedBorder:
-            OutlineInputBorder(
-          borderRadius:
-              BorderRadius.circular(
-                  18),
-          borderSide:
-              const BorderSide(
-            color:
-                primaryBlue,
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(
+            color: primaryBlue,
             width: 2,
           ),
         ),
         contentPadding:
-            const EdgeInsets
-                .symmetric(
+            const EdgeInsets.symmetric(
           vertical: 18,
           horizontal: 18,
         ),
