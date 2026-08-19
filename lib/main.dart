@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -12,14 +14,12 @@ const Color backgroundColor = Color(0xFFF6F7FC);
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await SystemChrome.setPreferredOrientations(
-    const [
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ],
-  );
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ]);
 
   await SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.edgeToEdge,
@@ -29,11 +29,7 @@ Future<void> main() async {
     await Firebase.initializeApp();
     runApp(const SRStudiesApp());
   } catch (e) {
-    runApp(
-      FirebaseErrorApp(
-        error: e.toString(),
-      ),
-    );
+    runApp(FirebaseErrorApp(error: e.toString()));
   }
 }
 
@@ -132,8 +128,7 @@ class AuthGate extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState ==
-            ConnectionState.waiting) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(
               child: CircularProgressIndicator(
@@ -161,8 +156,7 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() =>
-      _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -184,9 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = passwordController.text;
 
     if (email.isEmpty || password.isEmpty) {
-      showMessage(
-        'Email और Password दोनों भरें',
-      );
+      showMessage('Email और Password दोनों भरें');
       return;
     }
 
@@ -196,8 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final credential =
-          await FirebaseAuth.instance
-              .signInWithEmailAndPassword(
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -211,27 +202,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
       await user.reload();
 
-      final currentUser =
-          FirebaseAuth.instance.currentUser;
+      final currentUser = FirebaseAuth.instance.currentUser;
 
-      if (currentUser != null &&
-          !currentUser.emailVerified) {
+      if (currentUser != null && !currentUser.emailVerified) {
         await FirebaseAuth.instance.signOut();
 
         if (mounted) {
-          showMessage(
-            'पहले Email verification पूरा करें।',
-          );
+          showMessage('पहले Email verification पूरा करें।');
         }
       }
     } on FirebaseAuthException catch (e) {
-      showMessage(
-        authError(e.code),
-      );
+      showMessage(authError(e.code));
     } catch (_) {
-      showMessage(
-        'Login में समस्या हुई',
-      );
+      showMessage('Login में समस्या हुई');
     } finally {
       if (mounted) {
         setState(() {
@@ -245,23 +228,17 @@ class _LoginScreenState extends State<LoginScreen> {
     switch (code) {
       case 'invalid-email':
         return 'Email सही नहीं है';
-
       case 'user-not-found':
         return 'यह Email registered नहीं है';
-
       case 'wrong-password':
       case 'invalid-credential':
         return 'Email या Password गलत है';
-
       case 'user-disabled':
         return 'यह account बंद कर दिया गया है';
-
       case 'too-many-requests':
         return 'बहुत ज्यादा attempts हुए हैं';
-
       case 'network-request-failed':
         return 'Internet connection check करें';
-
       default:
         return 'Login failed: $code';
     }
@@ -271,9 +248,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -282,12 +257,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            30,
-            50,
-            30,
-            30,
-          ),
+          padding: const EdgeInsets.fromLTRB(30, 50, 30, 30),
           child: Column(
             children: [
               const Icon(
@@ -316,8 +286,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: emailController,
                 hint: 'Email',
                 icon: Icons.email_outlined,
-                keyboardType:
-                    TextInputType.emailAddress,
+                keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 18),
               AppTextField(
@@ -328,22 +297,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 suffix: IconButton(
                   onPressed: () {
                     setState(() {
-                      obscurePassword =
-                          !obscurePassword;
+                      obscurePassword = !obscurePassword;
                     });
                   },
                   icon: Icon(
                     obscurePassword
-                        ? Icons
-                            .visibility_off_outlined
-                        : Icons
-                            .visibility_outlined,
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
                   ),
                 ),
               ),
               Align(
-                alignment:
-                    Alignment.centerRight,
+                alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {
                     Navigator.push(
@@ -368,20 +333,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 height: 60,
                 child: ElevatedButton(
-                  onPressed:
-                      loading ? null : login,
-                  style:
-                      ElevatedButton.styleFrom(
-                    backgroundColor:
-                        primaryBlue,
-                    foregroundColor:
-                        Colors.white,
-                    shape:
-                        RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(
-                        30,
-                      ),
+                  onPressed: loading ? null : login,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryBlue,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
                     ),
                   ),
                   child: loading
@@ -392,8 +349,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           'LOGIN',
                           style: TextStyle(
                             fontSize: 19,
-                            fontWeight:
-                                FontWeight.bold,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                 ),
@@ -404,8 +360,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) =>
-                          const SignupScreen(),
+                      builder: (_) => const SignupScreen(),
                     ),
                   );
                 },
@@ -434,20 +389,13 @@ class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
 
   @override
-  State<SignupScreen> createState() =>
-      _SignupScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _SignupScreenState
-    extends State<SignupScreen> {
-  final nameController =
-      TextEditingController();
-
-  final emailController =
-      TextEditingController();
-
-  final passwordController =
-      TextEditingController();
+class _SignupScreenState extends State<SignupScreen> {
+  final nameController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
 
   bool loading = false;
   bool obscurePassword = true;
@@ -461,21 +409,12 @@ class _SignupScreenState
   }
 
   Future<void> signup() async {
-    final name =
-        nameController.text.trim();
+    final name = nameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text;
 
-    final email =
-        emailController.text.trim();
-
-    final password =
-        passwordController.text;
-
-    if (name.isEmpty ||
-        email.isEmpty ||
-        password.isEmpty) {
-      showMessage(
-        'Name, Email और Password भरें',
-      );
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      showMessage('Name, Email और Password भरें');
       return;
     }
 
@@ -492,8 +431,7 @@ class _SignupScreenState
 
     try {
       final credential =
-          await FirebaseAuth.instance
-              .createUserWithEmailAndPassword(
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -501,10 +439,7 @@ class _SignupScreenState
       final user = credential.user;
 
       if (user != null) {
-        await user.updateDisplayName(
-          name,
-        );
-
+        await user.updateDisplayName(name);
         await user.sendEmailVerification();
 
         await FirebaseFirestore.instance
@@ -514,13 +449,11 @@ class _SignupScreenState
           'uid': user.uid,
           'name': name,
           'email': email,
-          'createdAt':
-              FieldValue.serverTimestamp(),
+          'createdAt': FieldValue.serverTimestamp(),
         });
       }
 
-      await FirebaseAuth.instance
-          .signOut();
+      await FirebaseAuth.instance.signOut();
 
       if (!mounted) return;
 
@@ -528,9 +461,7 @@ class _SignupScreenState
         context: context,
         builder: (_) {
           return AlertDialog(
-            title: const Text(
-              'Account Created',
-            ),
+            title: const Text('Account Created'),
             content: const Text(
               'आपके Email पर verification link भेजा गया है। '
               'Email verify करने के बाद Login करें।',
@@ -551,13 +482,9 @@ class _SignupScreenState
         Navigator.pop(context);
       }
     } on FirebaseAuthException catch (e) {
-      showMessage(
-        signupError(e.code),
-      );
+      showMessage(signupError(e.code));
     } catch (_) {
-      showMessage(
-        'Account बनाने में समस्या हुई',
-      );
+      showMessage('Account बनाने में समस्या हुई');
     } finally {
       if (mounted) {
         setState(() {
@@ -571,19 +498,14 @@ class _SignupScreenState
     switch (code) {
       case 'email-already-in-use':
         return 'यह Email पहले से registered है';
-
       case 'invalid-email':
         return 'Email सही नहीं है';
-
       case 'weak-password':
         return 'Password बहुत कमजोर है';
-
       case 'operation-not-allowed':
         return 'Firebase में Email/Password enable करें';
-
       case 'network-request-failed':
         return 'Internet connection check करें';
-
       default:
         return 'Signup failed: $code';
     }
@@ -593,9 +515,7 @@ class _SignupScreenState
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -603,9 +523,7 @@ class _SignupScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Create Account',
-        ),
+        title: const Text('Create Account'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(28),
@@ -621,38 +539,31 @@ class _SignupScreenState
               controller: nameController,
               hint: 'Student Name',
               icon: Icons.person_outline,
-              textCapitalization:
-                  TextCapitalization.words,
+              textCapitalization: TextCapitalization.words,
             ),
             const SizedBox(height: 18),
             AppTextField(
               controller: emailController,
               hint: 'Email',
               icon: Icons.email_outlined,
-              keyboardType:
-                  TextInputType.emailAddress,
+              keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 18),
             AppTextField(
-              controller:
-                  passwordController,
+              controller: passwordController,
               hint: 'Password',
               icon: Icons.lock_outline,
-              obscureText:
-                  obscurePassword,
+              obscureText: obscurePassword,
               suffix: IconButton(
                 onPressed: () {
                   setState(() {
-                    obscurePassword =
-                        !obscurePassword;
+                    obscurePassword = !obscurePassword;
                   });
                 },
                 icon: Icon(
                   obscurePassword
-                      ? Icons
-                          .visibility_off_outlined
-                      : Icons
-                          .visibility_outlined,
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
                 ),
               ),
             ),
@@ -661,14 +572,10 @@ class _SignupScreenState
               width: double.infinity,
               height: 58,
               child: ElevatedButton(
-                onPressed:
-                    loading ? null : signup,
-                style:
-                    ElevatedButton.styleFrom(
-                  backgroundColor:
-                      primaryBlue,
-                  foregroundColor:
-                      Colors.white,
+                onPressed: loading ? null : signup,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryBlue,
+                  foregroundColor: Colors.white,
                 ),
                 child: loading
                     ? const CircularProgressIndicator(
@@ -677,8 +584,7 @@ class _SignupScreenState
                     : const Text(
                         'CREATE ACCOUNT',
                         style: TextStyle(
-                          fontWeight:
-                              FontWeight.bold,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
               ),
@@ -694,11 +600,8 @@ class _SignupScreenState
 // FORGOT PASSWORD
 // ============================================================
 
-class ForgotPasswordScreen
-    extends StatefulWidget {
-  const ForgotPasswordScreen({
-    super.key,
-  });
+class ForgotPasswordScreen extends StatefulWidget {
+  const ForgotPasswordScreen({super.key});
 
   @override
   State<ForgotPasswordScreen> createState() =>
@@ -707,8 +610,7 @@ class ForgotPasswordScreen
 
 class _ForgotPasswordScreenState
     extends State<ForgotPasswordScreen> {
-  final emailController =
-      TextEditingController();
+  final emailController = TextEditingController();
 
   bool loading = false;
 
@@ -719,13 +621,10 @@ class _ForgotPasswordScreenState
   }
 
   Future<void> resetPassword() async {
-    final email =
-        emailController.text.trim();
+    final email = emailController.text.trim();
 
     if (email.isEmpty) {
-      showMessage(
-        'Registered Email डालें',
-      );
+      showMessage('Registered Email डालें');
       return;
     }
 
@@ -734,8 +633,7 @@ class _ForgotPasswordScreenState
     });
 
     try {
-      await FirebaseAuth.instance
-          .sendPasswordResetEmail(
+      await FirebaseAuth.instance.sendPasswordResetEmail(
         email: email,
       );
 
@@ -745,13 +643,9 @@ class _ForgotPasswordScreenState
         );
       }
     } on FirebaseAuthException catch (e) {
-      showMessage(
-        passwordResetError(e.code),
-      );
+      showMessage(passwordResetError(e.code));
     } catch (_) {
-      showMessage(
-        'Password reset में समस्या हुई',
-      );
+      showMessage('Password reset में समस्या हुई');
     } finally {
       if (mounted) {
         setState(() {
@@ -761,22 +655,16 @@ class _ForgotPasswordScreenState
     }
   }
 
-  String passwordResetError(
-    String code,
-  ) {
+  String passwordResetError(String code) {
     switch (code) {
       case 'invalid-email':
         return 'Email सही नहीं है';
-
       case 'user-not-found':
         return 'यह Email registered नहीं है';
-
       case 'network-request-failed':
         return 'Internet connection check करें';
-
       case 'too-many-requests':
         return 'बहुत ज्यादा attempts हुए हैं, थोड़ी देर बाद try करें';
-
       default:
         return 'Password reset failed: $code';
     }
@@ -786,9 +674,7 @@ class _ForgotPasswordScreenState
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -796,9 +682,7 @@ class _ForgotPasswordScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Forgot Password',
-        ),
+        title: const Text('Forgot Password'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(30),
@@ -823,24 +707,17 @@ class _ForgotPasswordScreenState
               controller: emailController,
               hint: 'Registered Email',
               icon: Icons.email_outlined,
-              keyboardType:
-                  TextInputType.emailAddress,
+              keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 25),
             SizedBox(
               width: double.infinity,
               height: 58,
               child: ElevatedButton(
-                onPressed:
-                    loading
-                        ? null
-                        : resetPassword,
-                style:
-                    ElevatedButton.styleFrom(
-                  backgroundColor:
-                      primaryBlue,
-                  foregroundColor:
-                      Colors.white,
+                onPressed: loading ? null : resetPassword,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryBlue,
+                  foregroundColor: Colors.white,
                 ),
                 child: loading
                     ? const CircularProgressIndicator(
@@ -849,8 +726,7 @@ class _ForgotPasswordScreenState
                     : const Text(
                         'SEND RESET LINK',
                         style: TextStyle(
-                          fontWeight:
-                              FontWeight.bold,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
               ),
@@ -866,17 +742,14 @@ class _ForgotPasswordScreenState
 // MAIN NAVIGATION
 // ============================================================
 
-class MainNavigation
-    extends StatefulWidget {
+class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
 
   @override
-  State<MainNavigation> createState() =>
-      _MainNavigationState();
+  State<MainNavigation> createState() => _MainNavigationState();
 }
 
-class _MainNavigationState
-    extends State<MainNavigation> {
+class _MainNavigationState extends State<MainNavigation> {
   int currentIndex = 0;
 
   final List<Widget> pages = const [
@@ -894,59 +767,37 @@ class _MainNavigationState
         index: currentIndex,
         children: pages,
       ),
-      bottomNavigationBar:
-          NavigationBar(
+      bottomNavigationBar: NavigationBar(
         selectedIndex: currentIndex,
-        onDestinationSelected:
-            (index) {
+        onDestinationSelected: (index) {
           setState(() {
             currentIndex = index;
           });
         },
         destinations: const [
           NavigationDestination(
-            icon: Icon(
-              Icons.home_outlined,
-            ),
-            selectedIcon: Icon(
-              Icons.home,
-            ),
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
             label: 'Home',
           ),
           NavigationDestination(
-            icon: Icon(
-              Icons.menu_book_outlined,
-            ),
-            selectedIcon: Icon(
-              Icons.menu_book,
-            ),
+            icon: Icon(Icons.menu_book_outlined),
+            selectedIcon: Icon(Icons.menu_book),
             label: 'Subjects',
           ),
           NavigationDestination(
-            icon: Icon(
-              Icons.quiz_outlined,
-            ),
-            selectedIcon: Icon(
-              Icons.quiz,
-            ),
+            icon: Icon(Icons.quiz_outlined),
+            selectedIcon: Icon(Icons.quiz),
             label: 'Practice',
           ),
           NavigationDestination(
-            icon: Icon(
-              Icons.folder_outlined,
-            ),
-            selectedIcon: Icon(
-              Icons.folder,
-            ),
+            icon: Icon(Icons.folder_outlined),
+            selectedIcon: Icon(Icons.folder),
             label: 'Notes',
           ),
           NavigationDestination(
-            icon: Icon(
-              Icons.person_outline,
-            ),
-            selectedIcon: Icon(
-              Icons.person,
-            ),
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
             label: 'Profile',
           ),
         ],
@@ -977,28 +828,24 @@ class HomePage extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(18),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
                 color: primaryBlue,
-                borderRadius:
-                    BorderRadius.circular(26),
+                borderRadius: BorderRadius.circular(26),
               ),
               child: const Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Welcome to SR STUDIES',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   SizedBox(height: 10),
@@ -1022,60 +869,30 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 18),
             const SubjectSection(
-              title:
-                  'ARTS & SOCIAL SCIENCE',
-              icon:
-                  Icons.menu_book_outlined,
+              title: 'ARTS & SOCIAL SCIENCE',
+              icon: Icons.menu_book_outlined,
               subjects: [
-                [
-                  'History',
-                  Icons.history_edu,
-                ],
-                [
-                  'Economics',
-                  Icons.currency_rupee,
-                ],
-                [
-                  'Geography',
-                  Icons.public,
-                ],
-                [
-                  'Polity',
-                  Icons.account_balance,
-                ],
+                ['History', Icons.history_edu],
+                ['Economics', Icons.currency_rupee],
+                ['Geography', Icons.public],
+                ['Polity', Icons.account_balance],
               ],
             ),
             const SubjectSection(
               title: 'SCIENCE',
-              icon:
-                  Icons.science_outlined,
+              icon: Icons.science_outlined,
               subjects: [
-                [
-                  'Biology',
-                  Icons.biotech_outlined,
-                ],
-                [
-                  'Chemistry',
-                  Icons.science,
-                ],
-                [
-                  'Physics',
-                  Icons.bolt_outlined,
-                ],
+                ['Biology', Icons.biotech_outlined],
+                ['Chemistry', Icons.science],
+                ['Physics', Icons.bolt_outlined],
               ],
             ),
             const SubjectSection(
               title: 'MAPS',
               icon: Icons.map_outlined,
               subjects: [
-                [
-                  'World Map',
-                  Icons.public,
-                ],
-                [
-                  'Indian Map',
-                  Icons.map,
-                ],
+                ['World Map', Icons.public],
+                ['Indian Map', Icons.map],
               ],
             ),
           ],
@@ -1089,8 +906,7 @@ class HomePage extends StatelessWidget {
 // SUBJECTS
 // ============================================================
 
-class SubjectsPage
-    extends StatelessWidget {
+class SubjectsPage extends StatelessWidget {
   const SubjectsPage({super.key});
 
   @override
@@ -1108,60 +924,30 @@ class SubjectsPage
         padding: const EdgeInsets.all(18),
         children: const [
           SubjectSection(
-            title:
-                'ARTS & SOCIAL SCIENCE',
-            icon:
-                Icons.menu_book_outlined,
+            title: 'ARTS & SOCIAL SCIENCE',
+            icon: Icons.menu_book_outlined,
             subjects: [
-              [
-                'History',
-                Icons.history_edu,
-              ],
-              [
-                'Economics',
-                Icons.currency_rupee,
-              ],
-              [
-                'Geography',
-                Icons.public,
-              ],
-              [
-                'Polity',
-                Icons.account_balance,
-              ],
+              ['History', Icons.history_edu],
+              ['Economics', Icons.currency_rupee],
+              ['Geography', Icons.public],
+              ['Polity', Icons.account_balance],
             ],
           ),
           SubjectSection(
             title: 'SCIENCE',
-            icon:
-                Icons.science_outlined,
+            icon: Icons.science_outlined,
             subjects: [
-              [
-                'Biology',
-                Icons.biotech_outlined,
-              ],
-              [
-                'Chemistry',
-                Icons.science,
-              ],
-              [
-                'Physics',
-                Icons.bolt_outlined,
-              ],
+              ['Biology', Icons.biotech_outlined],
+              ['Chemistry', Icons.science],
+              ['Physics', Icons.bolt_outlined],
             ],
           ),
           SubjectSection(
             title: 'MAPS',
             icon: Icons.map_outlined,
             subjects: [
-              [
-                'World Map',
-                Icons.public,
-              ],
-              [
-                'Indian Map',
-                Icons.map,
-              ],
+              ['World Map', Icons.public],
+              ['Indian Map', Icons.map],
             ],
           ),
         ],
@@ -1174,8 +960,7 @@ class SubjectsPage
 // SUBJECT SECTION
 // ============================================================
 
-class SubjectSection
-    extends StatelessWidget {
+class SubjectSection extends StatelessWidget {
   final String title;
   final IconData icon;
   final List<List<dynamic>> subjects;
@@ -1190,8 +975,7 @@ class SubjectSection
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         GroupTitle(
           icon: icon,
@@ -1213,8 +997,7 @@ class SubjectSection
 // SUBJECT CARD
 // ============================================================
 
-class SubjectCard
-    extends StatelessWidget {
+class SubjectCard extends StatelessWidget {
   final String title;
   final IconData icon;
 
@@ -1228,35 +1011,24 @@ class SubjectCard
     switch (title) {
       case 'History':
         return 'history';
-
       case 'Economics':
         return 'economics';
-
       case 'Geography':
         return 'geography';
-
       case 'Polity':
         return 'polity';
-
       case 'Biology':
         return 'biology';
-
       case 'Chemistry':
         return 'chemistry';
-
       case 'Physics':
         return 'physics';
-
       case 'World Map':
         return 'world_map';
-
       case 'Indian Map':
         return 'indian_map';
-
       default:
-        return title
-            .toLowerCase()
-            .replaceAll(' ', '_');
+        return title.toLowerCase().replaceAll(' ', '_');
     }
   }
 
@@ -1265,36 +1037,25 @@ class SubjectCard
     return Container(
       width: double.infinity,
       height: 65,
-      margin:
-          const EdgeInsets.only(
-        bottom: 10,
-      ),
+      margin: const EdgeInsets.only(bottom: 10),
       child: ElevatedButton(
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) =>
-                  SubjectVideosPage(
+              builder: (_) => SubjectVideosPage(
                 subjectName: title,
-                firestoreName:
-                    firestoreSubjectName,
+                firestoreName: firestoreSubjectName,
               ),
             ),
           );
         },
-        style:
-            ElevatedButton.styleFrom(
+        style: ElevatedButton.styleFrom(
           backgroundColor: Colors.white,
-          foregroundColor:
-              Colors.black87,
+          foregroundColor: Colors.black87,
           elevation: 1,
-          shape:
-              RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(
-              17,
-            ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(17),
           ),
         ),
         child: Row(
@@ -1303,14 +1064,8 @@ class SubjectCard
               width: 43,
               height: 43,
               decoration: BoxDecoration(
-                color: primaryBlue
-                    .withValues(
-                  alpha: 0.10,
-                ),
-                borderRadius:
-                    BorderRadius.circular(
-                  13,
-                ),
+                color: primaryBlue.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(13),
               ),
               child: Icon(
                 icon,
@@ -1323,8 +1078,7 @@ class SubjectCard
                 title,
                 style: const TextStyle(
                   fontSize: 16,
-                  fontWeight:
-                      FontWeight.w600,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
@@ -1341,10 +1095,10 @@ class SubjectCard
 
 // ============================================================
 // SUBJECT VIDEOS PAGE
+// NO SUBJECT APPBAR
 // ============================================================
 
-class SubjectVideosPage
-    extends StatefulWidget {
+class SubjectVideosPage extends StatefulWidget {
   final String subjectName;
   final String firestoreName;
 
@@ -1359,53 +1113,41 @@ class SubjectVideosPage
       _SubjectVideosPageState();
 }
 
-class _SubjectVideosPageState
-    extends State<SubjectVideosPage> {
+class _SubjectVideosPageState extends State<SubjectVideosPage> {
   @override
   void initState() {
     super.initState();
-
     lockPortrait();
   }
 
   Future<void> lockPortrait() async {
-    await SystemChrome
-        .setPreferredOrientations(
-      const [
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-      ],
-    );
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
 
-    await SystemChrome
-        .setEnabledSystemUIMode(
+    await SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.edgeToEdge,
     );
   }
 
   @override
   void dispose() {
-    SystemChrome
-        .setPreferredOrientations(
-      const [
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ],
-    );
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
 
-    SystemChrome
-        .setEnabledSystemUIMode(
+    SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.edgeToEdge,
     );
 
     super.dispose();
   }
 
-  Stream<
-      QuerySnapshot<
-          Map<String, dynamic>>> videoStream() {
+  Stream<QuerySnapshot<Map<String, dynamic>>> videoStream() {
     return FirebaseFirestore.instance
         .collection('subjects')
         .doc(widget.firestoreName)
@@ -1413,50 +1155,37 @@ class _SubjectVideosPageState
         .snapshots();
   }
 
-  List<
-      QueryDocumentSnapshot<
-          Map<String, dynamic>>> sortVideos(
-    List<
-            QueryDocumentSnapshot<
-                Map<String, dynamic>>>
-        docs,
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> sortVideos(
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> docs,
   ) {
     final videos = [...docs];
 
-    videos.sort(
-      (a, b) {
-        final aData = a.data();
-        final bData = b.data();
+    videos.sort((a, b) {
+      final aData = a.data();
+      final bData = b.data();
 
-        final aTime =
-            aData['createdAt'];
+      final aTime = aData['createdAt'];
+      final bTime = bData['createdAt'];
 
-        final bTime =
-            bData['createdAt'];
+      if (aTime is Timestamp && bTime is Timestamp) {
+        return bTime.compareTo(aTime);
+      }
 
-        if (aTime is Timestamp &&
-            bTime is Timestamp) {
-          return bTime.compareTo(aTime);
-        }
+      if (aTime is Timestamp) {
+        return -1;
+      }
 
-        if (aTime is Timestamp) {
-          return -1;
-        }
+      if (bTime is Timestamp) {
+        return 1;
+      }
 
-        if (bTime is Timestamp) {
-          return 1;
-        }
-
-        return b.id.compareTo(a.id);
-      },
-    );
+      return b.id.compareTo(a.id);
+    });
 
     return videos;
   }
 
-  String getVideoValue(
-    Map<String, dynamic> data,
-  ) {
+  String getVideoValue(Map<String, dynamic> data) {
     const fields = [
       'videoUrl',
       'videoURL',
@@ -1473,23 +1202,17 @@ class _SubjectVideosPageState
     for (final field in fields) {
       final value = data[field];
 
-      if (value != null &&
-          value.toString().trim().isNotEmpty) {
-        return value
-            .toString()
-            .trim();
+      if (value != null && value.toString().trim().isNotEmpty) {
+        return value.toString().trim();
       }
     }
 
     return '';
   }
 
-  bool getIsLive(
-    Map<String, dynamic> data) {
+  bool getIsLive(Map<String, dynamic> data) {
     final type =
-        (data['type'] ?? '')
-            .toString()
-            .toLowerCase();
+        (data['type'] ?? '').toString().toLowerCase();
 
     return data['isLive'] == true ||
         type == 'live' ||
@@ -1499,20 +1222,12 @@ class _SubjectVideosPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // AppBar हटाया गया है।
-      // इसलिए ऊपर Subject वाला white bar नहीं आएगा।
-      body: StreamBuilder<
-          QuerySnapshot<
-              Map<String, dynamic>>>(
+      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: videoStream(),
-        builder:
-            (context, snapshot) {
-          if (snapshot
-                  .connectionState ==
-              ConnectionState.waiting) {
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-              child:
-                  CircularProgressIndicator(
+              child: CircularProgressIndicator(
                 color: primaryBlue,
               ),
             );
@@ -1520,12 +1235,9 @@ class _SubjectVideosPageState
 
           if (snapshot.hasError) {
             return _EmptyOrErrorView(
-              icon:
-                  Icons.error_outline,
-              title:
-                  'Videos load नहीं हो सके',
-              message:
-                  '${snapshot.error}',
+              icon: Icons.error_outline,
+              title: 'Videos load नहीं हो सके',
+              message: '${snapshot.error}',
               error: true,
             );
           }
@@ -1536,8 +1248,7 @@ class _SubjectVideosPageState
 
           if (docs.isEmpty) {
             return _EmptyOrErrorView(
-              icon: Icons
-                  .video_library_outlined,
+              icon: Icons.video_library_outlined,
               title:
                   'अभी ${widget.subjectName} का कोई video उपलब्ध नहीं है',
               message:
@@ -1549,35 +1260,22 @@ class _SubjectVideosPageState
             color: primaryBlue,
             onRefresh: () async {
               await Future<void>.delayed(
-                const Duration(
-                  milliseconds: 300,
-                ),
+                const Duration(milliseconds: 300),
               );
             },
             child: ListView.builder(
-              physics:
-                  const AlwaysScrollableScrollPhysics(
-                parent:
-                    BouncingScrollPhysics(),
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
               ),
-              keyboardDismissBehavior:
-                  ScrollViewKeyboardDismissBehavior
-                      .onDrag,
-
-              // AppBar हटने के बाद video सबसे ऊपर से शुरू होगा।
-              padding:
-                  const EdgeInsets.fromLTRB(
+              padding: const EdgeInsets.fromLTRB(
                 0,
                 0,
                 0,
                 40,
               ),
-
               itemCount: docs.length,
-              itemBuilder:
-                  (context, index) {
-                final data =
-                    docs[index].data();
+              itemBuilder: (context, index) {
+                final data = docs[index].data();
 
                 final title =
                     (data['title'] ??
@@ -1587,13 +1285,11 @@ class _SubjectVideosPageState
                         .trim();
 
                 final description =
-                    (data['description'] ??
-                            '')
+                    (data['description'] ?? '')
                         .toString()
                         .trim();
 
-                final videoUrl =
-                    getVideoValue(data);
+                final videoUrl = getVideoValue(data);
 
                 return VideoCard(
                   key: ValueKey(
@@ -1602,11 +1298,9 @@ class _SubjectVideosPageState
                   title: title.isEmpty
                       ? 'Study Video'
                       : title,
-                  description:
-                      description,
+                  description: description,
                   videoUrl: videoUrl,
-                  isLive:
-                      getIsLive(data),
+                  isLive: getIsLive(data),
                 );
               },
             ),
@@ -1621,8 +1315,7 @@ class _SubjectVideosPageState
 // EMPTY / ERROR
 // ============================================================
 
-class _EmptyOrErrorView
-    extends StatelessWidget {
+class _EmptyOrErrorView extends StatelessWidget {
   final IconData icon;
   final String title;
   final String message;
@@ -1639,35 +1332,28 @@ class _EmptyOrErrorView
   Widget build(BuildContext context) {
     return Center(
       child: SingleChildScrollView(
-        padding:
-            const EdgeInsets.all(25),
+        padding: const EdgeInsets.all(25),
         child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
               size: 75,
-              color: error
-                  ? Colors.red
-                  : primaryBlue,
+              color: error ? Colors.red : primaryBlue,
             ),
             const SizedBox(height: 20),
             Text(
               title,
-              textAlign:
-                  TextAlign.center,
+              textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 20,
-                fontWeight:
-                    FontWeight.bold,
+                fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 12),
             Text(
               message,
-              textAlign:
-                  TextAlign.center,
+              textAlign: TextAlign.center,
               style: const TextStyle(
                 color: Colors.grey,
               ),
@@ -1683,8 +1369,7 @@ class _EmptyOrErrorView
 // VIDEO CARD
 // ============================================================
 
-class VideoCard
-    extends StatefulWidget {
+class VideoCard extends StatefulWidget {
   final String title;
   final String description;
   final String videoUrl;
@@ -1699,12 +1384,10 @@ class VideoCard
   });
 
   @override
-  State<VideoCard> createState() =>
-      _VideoCardState();
+  State<VideoCard> createState() => _VideoCardState();
 }
 
-class _VideoCardState
-    extends State<VideoCard> {
+class _VideoCardState extends State<VideoCard> {
   YoutubePlayerController? controller;
 
   String? videoId;
@@ -1715,9 +1398,13 @@ class _VideoCardState
 
   double playbackSpeed = 1.0;
 
-  // ==========================================================
-  // ALL SPEEDS
-  // ==========================================================
+  // Controls visible होने के बाद इतने समय में hide होंगे।
+  static const Duration controlsHideDelay =
+      Duration(milliseconds: 1500);
+
+  Timer? controlsTimer;
+
+  bool controlsVisible = true;
 
   static const List<double> speeds = [
     0.25,
@@ -1733,7 +1420,6 @@ class _VideoCardState
   @override
   void initState() {
     super.initState();
-
     initializePlayer();
   }
 
@@ -1741,9 +1427,7 @@ class _VideoCardState
   // YOUTUBE ID
   // ==========================================================
 
-  String? extractYoutubeId(
-    String input,
-  ) {
+  String? extractYoutubeId(String input) {
     var value = input
         .trim()
         .replaceAll('"', '')
@@ -1754,8 +1438,7 @@ class _VideoCardState
       return null;
     }
 
-    final directId =
-        RegExp(
+    final directId = RegExp(
       r'^[A-Za-z0-9_-]{11}$',
     );
 
@@ -1763,22 +1446,17 @@ class _VideoCardState
       return value;
     }
 
-    Uri? uri =
-        Uri.tryParse(value);
+    Uri? uri = Uri.tryParse(value);
 
-    if (uri == null ||
-        uri.host.isEmpty) {
-      uri = Uri.tryParse(
-        'https://$value',
-      );
+    if (uri == null || uri.host.isEmpty) {
+      uri = Uri.tryParse('https://$value');
     }
 
     if (uri == null) {
       return null;
     }
 
-    final host =
-        uri.host.toLowerCase();
+    final host = uri.host.toLowerCase();
 
     const youtubeHosts = {
       'youtube.com',
@@ -1788,13 +1466,9 @@ class _VideoCardState
     };
 
     if (youtubeHosts.contains(host)) {
-      final queryId =
-          uri.queryParameters['v'];
+      final queryId = uri.queryParameters['v'];
 
-      if (queryId != null &&
-          directId.hasMatch(
-            queryId,
-          )) {
+      if (queryId != null && directId.hasMatch(queryId)) {
         return queryId;
       }
 
@@ -1803,14 +1477,9 @@ class _VideoCardState
         'embed',
         'live',
       ]) {
-        if (uri.pathSegments.length >=
-                2 &&
-            uri.pathSegments
-                    .first
-                    .toLowerCase() ==
-                pathName) {
-          final id =
-              uri.pathSegments[1];
+        if (uri.pathSegments.length >= 2 &&
+            uri.pathSegments.first.toLowerCase() == pathName) {
+          final id = uri.pathSegments[1];
 
           if (directId.hasMatch(id)) {
             return id;
@@ -1819,12 +1488,9 @@ class _VideoCardState
       }
     }
 
-    if (host == 'youtu.be' ||
-        host == 'www.youtu.be') {
-      if (uri.pathSegments
-          .isNotEmpty) {
-        final id =
-            uri.pathSegments.first;
+    if (host == 'youtu.be' || host == 'www.youtu.be') {
+      if (uri.pathSegments.isNotEmpty) {
+        final id = uri.pathSegments.first;
 
         if (directId.hasMatch(id)) {
           return id;
@@ -1832,16 +1498,13 @@ class _VideoCardState
       }
     }
 
-    final fallback =
-        RegExp(
+    final fallback = RegExp(
       r'(?:v=|youtu\.be/|/shorts/|/embed/|/live/)'
       r'([A-Za-z0-9_-]{11})',
       caseSensitive: false,
     );
 
-    return fallback
-        .firstMatch(value)
-        ?.group(1);
+    return fallback.firstMatch(value)?.group(1);
   }
 
   // ==========================================================
@@ -1849,20 +1512,16 @@ class _VideoCardState
   // ==========================================================
 
   void initializePlayer() {
-    final input =
-        widget.videoUrl.trim();
+    final input = widget.videoUrl.trim();
 
     if (input.isEmpty) {
-      errorMessage =
-          'Video link Firestore में नहीं मिला';
+      errorMessage = 'Video link Firestore में नहीं मिला';
       return;
     }
 
-    final id =
-        extractYoutubeId(input);
+    final id = extractYoutubeId(input);
 
-    if (id == null ||
-        id.isEmpty) {
+    if (id == null || id.isEmpty) {
       errorMessage =
           'YouTube video link गलत है\n\n$linkPreview';
       return;
@@ -1870,32 +1529,29 @@ class _VideoCardState
 
     videoId = id;
 
-    controller =
-        YoutubePlayerController(
+    controller = YoutubePlayerController(
       initialVideoId: id,
       flags: YoutubePlayerFlags(
         autoPlay: false,
         mute: false,
         enableCaption: true,
-        controlsVisibleAtStart:
-            true,
+        controlsVisibleAtStart: true,
         hideControls: false,
         loop: false,
         forceHD: false,
         isLive: widget.isLive,
-        useHybridComposition:
-            true,
+        useHybridComposition: true,
       ),
     );
 
-    controller!.addListener(
-      playerListener,
-    );
+    controller!.addListener(playerListener);
+
+    // शुरू में controls दिखें, फिर hide हों।
+    scheduleControlsHide();
   }
 
   String get linkPreview {
-    if (widget.videoUrl.length <=
-        100) {
+    if (widget.videoUrl.length <= 100) {
       return widget.videoUrl;
     }
 
@@ -1907,178 +1563,150 @@ class _VideoCardState
   // ==========================================================
 
   void playerListener() {
-    if (!mounted ||
-        controller == null) {
+    if (!mounted || controller == null) {
       return;
     }
 
-    final fullscreen =
-        controller!
-            .value
-            .isFullScreen;
+    final fullscreen = controller!.value.isFullScreen;
 
-    if (fullscreen !=
-        isFullscreen) {
+    if (fullscreen != isFullscreen) {
       setState(() {
-        isFullscreen =
-            fullscreen;
+        isFullscreen = fullscreen;
       });
     }
   }
 
   // ==========================================================
-  // DISPOSE
+  // CONTROLS
   // ==========================================================
 
-  @override
-  void dispose() {
-    controller?.removeListener(
-      playerListener,
+  void showControlsTemporarily() {
+    if (!mounted) return;
+
+    setState(() {
+      controlsVisible = true;
+    });
+
+    scheduleControlsHide();
+  }
+
+  void scheduleControlsHide() {
+    controlsTimer?.cancel();
+
+    controlsTimer = Timer(
+      controlsHideDelay,
+      () {
+        if (!mounted) return;
+
+        setState(() {
+          controlsVisible = false;
+        });
+      },
     );
+  }
 
-    controller?.dispose();
+  void hideControlsNow() {
+    controlsTimer?.cancel();
 
-    super.dispose();
+    if (!mounted) return;
+
+    setState(() {
+      controlsVisible = false;
+    });
   }
 
   // ==========================================================
-  // ENTER FULLSCREEN
+  // VIDEO TAP
   // ==========================================================
 
-  Future<void>
-      enterFullscreen() async {
-    if (controller == null) {
-      return;
-    }
-
-    await SystemChrome
-        .setPreferredOrientations(
-      const [
-        DeviceOrientation
-            .landscapeLeft,
-        DeviceOrientation
-            .landscapeRight,
-      ],
-    );
-
-    await SystemChrome
-        .setEnabledSystemUIMode(
-      SystemUiMode.immersiveSticky,
-    );
-
-    controller!
-        .toggleFullScreenMode();
-
-    if (mounted) {
-      setState(() {
-        isFullscreen = true;
-      });
-    }
-  }
-
-  // ==========================================================
-  // EXIT FULLSCREEN
-  // ==========================================================
-
-  Future<void>
-      exitFullscreen() async {
-    if (controller == null) {
-      return;
-    }
-
-    if (controller!
-        .value
-        .isFullScreen) {
-      controller!
-          .toggleFullScreenMode();
-    }
-
-    await SystemChrome
-        .setPreferredOrientations(
-      const [
-        DeviceOrientation
-            .portraitUp,
-        DeviceOrientation
-            .portraitDown,
-      ],
-    );
-
-    await SystemChrome
-        .setEnabledSystemUIMode(
-      SystemUiMode.edgeToEdge,
-    );
-
-    if (mounted) {
-      setState(() {
-        isFullscreen = false;
-      });
-    }
-  }
-
-  // ==========================================================
-  // FULLSCREEN TOGGLE
-  // ==========================================================
-
-  Future<void>
-      toggleFullscreen() async {
-    if (isFullscreen) {
-      await exitFullscreen();
+  void handleVideoTap() {
+    if (controlsVisible) {
+      hideControlsNow();
     } else {
-      await enterFullscreen();
+      showControlsTemporarily();
     }
   }
 
   // ==========================================================
-  // SPEED LABEL
+  // SEEK
   // ==========================================================
 
-  String speedLabel(
-    double speed,
-  ) {
-    if (speed ==
-        speed.roundToDouble()) {
+  void skipForward() {
+    final c = controller;
+
+    if (c == null) return;
+
+    final current = c.value.position;
+    final duration = c.value.metaData.duration;
+
+    Duration target = current + const Duration(seconds: 10);
+
+    if (duration > Duration.zero && target > duration) {
+      target = duration;
+    }
+
+    c.seekTo(target);
+
+    // Skip के बाद controls फिर से 1.5 sec दिखेंगे।
+    showControlsTemporarily();
+  }
+
+  void skipBackward() {
+    final c = controller;
+
+    if (c == null) return;
+
+    final current = c.value.position;
+
+    Duration target =
+        current - const Duration(seconds: 10);
+
+    if (target < Duration.zero) {
+      target = Duration.zero;
+    }
+
+    c.seekTo(target);
+
+    showControlsTemporarily();
+  }
+
+  // ==========================================================
+  // SPEED
+  // ==========================================================
+
+  String speedLabel(double speed) {
+    if (speed == speed.roundToDouble()) {
       return '${speed.toInt()}x';
     }
 
     return '${speed.toStringAsFixed(2)}x';
   }
 
-  // ==========================================================
-  // CHANGE SPEED
-  // ==========================================================
+  void changeSpeed(double speed) {
+    if (controller == null) return;
 
-  void changeSpeed(
-    double speed,
-  ) {
-    if (controller == null) {
-      return;
-    }
-
-    controller!.setPlaybackRate(
-      speed,
-    );
+    controller!.setPlaybackRate(speed);
 
     if (mounted) {
       setState(() {
         playbackSpeed = speed;
       });
     }
+
+    showControlsTemporarily();
   }
 
-  // ==========================================================
-  // SPEED MENU
-  // ==========================================================
-
   void showSpeedMenu() {
+    // Menu खोलने पर controls छिपेंगे नहीं।
+    controlsTimer?.cancel();
+
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       showDragHandle: true,
       backgroundColor:
-          Theme.of(context)
-              .colorScheme
-              .surface,
+          Theme.of(context).colorScheme.surface,
       builder: (sheetContext) {
         return FractionallySizedBox(
           heightFactor: 0.82,
@@ -2087,8 +1715,7 @@ class _VideoCardState
             child: Column(
               children: [
                 const Padding(
-                  padding:
-                      EdgeInsets.fromLTRB(
+                  padding: EdgeInsets.fromLTRB(
                     20,
                     6,
                     20,
@@ -2098,81 +1725,57 @@ class _VideoCardState
                     'Playback Speed',
                     style: TextStyle(
                       fontSize: 23,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
                 Expanded(
-                  child:
-                      ListView.separated(
-                    physics:
-                        const BouncingScrollPhysics(),
-                    padding:
-                        const EdgeInsets.fromLTRB(
+                  child: ListView.separated(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(
                       20,
                       4,
                       20,
                       20,
                     ),
-                    itemCount:
-                        speeds.length,
-                    separatorBuilder:
-                        (_, __) =>
-                            const Divider(
-                      height: 1,
-                    ),
-                    itemBuilder:
-                        (_, index) {
-                      final speed =
-                          speeds[index];
-
+                    itemCount: speeds.length,
+                    separatorBuilder: (_, __) =>
+                        const Divider(height: 1),
+                    itemBuilder: (_, index) {
+                      final speed = speeds[index];
                       final selected =
-                          speed ==
-                              playbackSpeed;
+                          speed == playbackSpeed;
 
                       return ListTile(
                         contentPadding:
-                            const EdgeInsets
-                                .symmetric(
+                            const EdgeInsets.symmetric(
                           horizontal: 8,
                         ),
                         leading: Icon(
                           selected
-                              ? Icons
-                                  .radio_button_checked
-                              : Icons
-                                  .radio_button_off,
-                          color:
-                              primaryBlue,
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_off,
+                          color: primaryBlue,
                         ),
                         title: Text(
-                          speedLabel(
-                            speed,
-                          ),
-                          style:
-                              const TextStyle(
+                          speedLabel(speed),
+                          style: const TextStyle(
                             fontSize: 18,
-                            fontWeight:
-                                FontWeight.w600,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        trailing:
-                            selected
-                                ? const Icon(
-                                    Icons.check,
-                                    color:
-                                        primaryBlue,
-                                  )
-                                : null,
+                        trailing: selected
+                            ? const Icon(
+                                Icons.check,
+                                color: primaryBlue,
+                              )
+                            : null,
                         onTap: () {
-                          changeSpeed(
-                            speed,
-                          );
+                          changeSpeed(speed);
 
-                          Navigator.of(
-                            sheetContext,
-                          ).pop();
+                          Navigator.of(sheetContext).pop();
+
+                          showControlsTemporarily();
                         },
                       );
                     },
@@ -2183,7 +1786,11 @@ class _VideoCardState
           ),
         );
       },
-    );
+    ).whenComplete(() {
+      if (mounted) {
+        showControlsTemporarily();
+      }
+    });
   }
 
   // ==========================================================
@@ -2191,9 +1798,7 @@ class _VideoCardState
   // ==========================================================
 
   void toggleMute() {
-    if (controller == null) {
-      return;
-    }
+    if (controller == null) return;
 
     if (muted) {
       controller!.unMute();
@@ -2206,6 +1811,8 @@ class _VideoCardState
         muted = !muted;
       });
     }
+
+    showControlsTemporarily();
   }
 
   // ==========================================================
@@ -2213,23 +1820,22 @@ class _VideoCardState
   // ==========================================================
 
   void showQualityInfo() {
+    controlsTimer?.cancel();
+
     showModalBottomSheet<void>(
       context: context,
       useSafeArea: true,
       showDragHandle: true,
-      builder: (_) =>
-          const SafeArea(
+      builder: (_) => const SafeArea(
         child: Padding(
-          padding:
-              EdgeInsets.fromLTRB(
+          padding: EdgeInsets.fromLTRB(
             24,
             15,
             24,
             30,
           ),
           child: Column(
-            mainAxisSize:
-                MainAxisSize.min,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 Icons.high_quality,
@@ -2241,21 +1847,23 @@ class _VideoCardState
                 'Video Quality',
                 style: TextStyle(
                   fontSize: 22,
-                  fontWeight:
-                      FontWeight.bold,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               SizedBox(height: 12),
               Text(
                 'YouTube video की quality internet speed और YouTube player के अनुसार automatically adjust होती है।',
-                textAlign:
-                    TextAlign.center,
+                textAlign: TextAlign.center,
               ),
             ],
           ),
         ),
       ),
-    );
+    ).whenComplete(() {
+      if (mounted) {
+        showControlsTemporarily();
+      }
+    });
   }
 
   // ==========================================================
@@ -2263,26 +1871,20 @@ class _VideoCardState
   // ==========================================================
 
   Future<void> openYoutube() async {
-    if (videoId == null) {
-      return;
-    }
+    if (videoId == null) return;
 
     final uri = Uri.parse(
       'https://www.youtube.com/watch?v=$videoId',
     );
 
     try {
-      final opened =
-          await launchUrl(
+      final opened = await launchUrl(
         uri,
-        mode: LaunchMode
-            .externalApplication,
+        mode: LaunchMode.externalApplication,
       );
 
       if (!opened && mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
               'YouTube खोलने में समस्या हुई',
@@ -2292,9 +1894,7 @@ class _VideoCardState
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
               'YouTube खोलने में समस्या हुई',
@@ -2306,53 +1906,113 @@ class _VideoCardState
   }
 
   // ==========================================================
+  // FULLSCREEN
+  // ==========================================================
+
+  Future<void> enterFullscreen() async {
+    if (controller == null) return;
+
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+
+    await SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.immersiveSticky,
+    );
+
+    controller!.toggleFullScreenMode();
+
+    if (mounted) {
+      setState(() {
+        isFullscreen = true;
+        controlsVisible = true;
+      });
+    }
+
+    scheduleControlsHide();
+  }
+
+  Future<void> exitFullscreen() async {
+    if (controller == null) return;
+
+    if (controller!.value.isFullScreen) {
+      controller!.toggleFullScreenMode();
+    }
+
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+
+    await SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.edgeToEdge,
+    );
+
+    if (mounted) {
+      setState(() {
+        isFullscreen = false;
+        controlsVisible = true;
+      });
+    }
+
+    scheduleControlsHide();
+  }
+
+  Future<void> toggleFullscreen() async {
+    if (isFullscreen) {
+      await exitFullscreen();
+    } else {
+      await enterFullscreen();
+    }
+  }
+
+  // ==========================================================
+  // BACK HANDLING
+  // ==========================================================
+
+  Future<bool> handleBackPressed() async {
+    if (isFullscreen) {
+      await exitFullscreen();
+
+      // IMPORTANT:
+      // Fullscreen से Back करने पर video बंद नहीं होगा।
+      return false;
+    }
+
+    return true;
+  }
+
+  // ==========================================================
   // PLAYER
   // ==========================================================
 
   Widget buildPlayer() {
-    if (controller == null ||
-        videoId == null) {
+    if (controller == null || videoId == null) {
       return AspectRatio(
         aspectRatio: 16 / 9,
         child: Container(
           color: Colors.black12,
-          alignment:
-              Alignment.center,
-          padding:
-              const EdgeInsets.all(
-            20,
-          ),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.all(20),
           child: Column(
-            mainAxisAlignment:
-                MainAxisAlignment
-                    .center,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(
                 Icons.error_outline,
                 size: 50,
                 color: Colors.red,
               ),
-              const SizedBox(
-                height: 10,
-              ),
+              const SizedBox(height: 10),
               Text(
-                errorMessage ??
-                    'Video load नहीं हुआ',
-                textAlign:
-                    TextAlign.center,
+                errorMessage ?? 'Video load नहीं हुआ',
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(
-                height: 14,
-              ),
-              if (widget.videoUrl
-                  .trim()
-                  .isNotEmpty)
+              const SizedBox(height: 14),
+              if (widget.videoUrl.trim().isNotEmpty)
                 OutlinedButton.icon(
-                  onPressed:
-                      openYoutube,
-                  icon: const Icon(
-                    Icons.open_in_new,
-                  ),
+                  onPressed: openYoutube,
+                  icon: const Icon(Icons.open_in_new),
                   label: const Text(
                     'YouTube पर खोलें',
                   ),
@@ -2363,223 +2023,231 @@ class _VideoCardState
       );
     }
 
-    return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: YoutubePlayer(
-        controller: controller!,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: handleVideoTap,
+      child: AspectRatio(
         aspectRatio: 16 / 9,
-        showVideoProgressIndicator:
-            !widget.isLive,
-        progressIndicatorColor:
-            primaryBlue,
-        progressColors:
-            const ProgressBarColors(
-          playedColor:
-              primaryBlue,
-          handleColor:
-              primaryBlue,
-          bufferedColor:
-              Colors.grey,
-          backgroundColor:
-              Colors.white30,
-        ),
-
-        // ======================================================
-        // TOP ACTIONS
-        // ======================================================
-
-        topActions: [
-          if (widget.isLive)
-            Container(
-              padding:
-                  const EdgeInsets
-                      .symmetric(
-                horizontal: 9,
-                vertical: 5,
+        child: Stack(
+          children: [
+            YoutubePlayer(
+              controller: controller!,
+              aspectRatio: 16 / 9,
+              showVideoProgressIndicator: !widget.isLive,
+              progressIndicatorColor: primaryBlue,
+              progressColors: const ProgressBarColors(
+                playedColor: primaryBlue,
+                handleColor: primaryBlue,
+                bufferedColor: Colors.grey,
+                backgroundColor: Colors.white30,
               ),
-              decoration:
-                  BoxDecoration(
-                color: Colors.red,
-                borderRadius:
-                    BorderRadius
-                        .circular(
-                  5,
-                ),
-              ),
-              child: const Row(
-                mainAxisSize:
-                    MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.circle,
-                    size: 8,
-                    color:
-                        Colors.white,
-                  ),
-                  SizedBox(width: 5),
-                  Text(
-                    'LIVE',
-                    style:
-                        TextStyle(
-                      color:
-                          Colors.white,
-                      fontWeight:
-                          FontWeight
-                              .bold,
-                      fontSize: 12,
+
+              // ------------------------------------------------
+              // TOP ACTIONS
+              // ------------------------------------------------
+
+              topActions: [
+                if (widget.isLive)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.circle,
+                          size: 8,
+                          color: Colors.white,
+                        ),
+                        SizedBox(width: 5),
+                        Text(
+                          'LIVE',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: showQualityInfo,
+                  child: const Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Icon(
+                      Icons.high_quality,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+
+              // ------------------------------------------------
+              // BOTTOM ACTIONS
+              // ------------------------------------------------
+
+              bottomActions: [
+                if (!controlsVisible)
+                  const SizedBox(
+                    width: 0,
+                  ),
+
+                if (controlsVisible) ...[
+                  const PlayPauseButton(),
+
+                  if (!widget.isLive) ...[
+                    const SizedBox(width: 3),
+
+                    // 10 SECOND BACK
+                    GestureDetector(
+                      onTap: skipBackward,
+                      child: const Padding(
+                        padding: EdgeInsets.all(5),
+                        child: Icon(
+                          Icons.replay_10,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 2),
+
+                    const CurrentPosition(),
+
+                    const SizedBox(width: 4),
+
+                    const Expanded(
+                      child: ProgressBar(
+                        isExpanded: true,
+                      ),
+                    ),
+
+                    const SizedBox(width: 3),
+
+                    const RemainingDuration(),
+
+                    const SizedBox(width: 2),
+
+                    // 10 SECOND FORWARD
+                    GestureDetector(
+                      onTap: skipForward,
+                      child: const Padding(
+                        padding: EdgeInsets.all(5),
+                        child: Icon(
+                          Icons.forward_10,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+
+                    ),
+
+                    const SizedBox(width: 2),
+
+                    // SPEED
+                    GestureDetector(
+                      onTap: showSpeedMenu,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 4,
+                        ),
+                        child: Text(
+                          speedLabel(playbackSpeed),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 2),
+
+                    // FULLSCREEN
+                    GestureDetector(
+                      onTap: toggleFullscreen,
+                      child: Icon(
+                        isFullscreen
+                            ? Icons.fullscreen_exit
+                            : Icons.fullscreen,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                    ),
+                  ] else ...[
+                    const SizedBox(width: 10),
+
+                    const Expanded(
+                      child: Text(
+                        'LIVE',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+
+                    GestureDetector(
+                      onTap: showSpeedMenu,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 4,
+                        ),
+                        child: Text(
+                          speedLabel(playbackSpeed),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 4),
+
+                    GestureDetector(
+                      onTap: toggleFullscreen,
+                      child: Icon(
+                        isFullscreen
+                            ? Icons.fullscreen_exit
+                            : Icons.fullscreen,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                    ),
+                  ],
                 ],
-              ),
-            ),
-          const Spacer(),
-          GestureDetector(
-            onTap:
-                showQualityInfo,
-            child:
-                const Padding(
-              padding:
-                  EdgeInsets.all(
-                8,
-              ),
-              child: Icon(
-                Icons.high_quality,
-                color:
-                    Colors.white,
-              ),
-            ),
-          ),
-        ],
-
-        // ======================================================
-        // BOTTOM ACTIONS
-        // ======================================================
-
-        bottomActions: [
-          const PlayPauseButton(),
-
-          if (!widget.isLive) ...[
-            const SizedBox(width: 5),
-
-            const CurrentPosition(),
-
-            const SizedBox(width: 5),
-
-            const Expanded(
-              child:
-                  ProgressBar(
-                isExpanded: true,
-              ),
+              ],
             ),
 
-            const SizedBox(width: 4),
-
-            const RemainingDuration(),
-
-            const SizedBox(width: 5),
-
-            GestureDetector(
-              onTap:
-                  showSpeedMenu,
-              child: Padding(
-                padding:
-                    const EdgeInsets
-                        .symmetric(
-                  horizontal: 4,
-                  vertical: 4,
-                ),
-                child: Text(
-                  speedLabel(
-                    playbackSpeed,
-                  ),
-                  style:
-                      const TextStyle(
-                    color:
-                        Colors.white,
-                    fontSize: 12,
-                    fontWeight:
-                        FontWeight.bold,
-                  ),
+            // --------------------------------------------------
+            // TAP OVERLAY
+            // --------------------------------------------------
+            // यह केवल tap पकड़ने के लिए है।
+            // Controls hidden होने पर video पर tap करके वापस आते हैं।
+            if (!controlsVisible)
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: showControlsTemporarily,
+                  child: const SizedBox.expand(),
                 ),
               ),
-            ),
-
-            const SizedBox(width: 5),
-
-            GestureDetector(
-              onTap:
-                  toggleFullscreen,
-              child: Icon(
-                isFullscreen
-                    ? Icons
-                        .fullscreen_exit
-                    : Icons.fullscreen,
-                color:
-                    Colors.white,
-                size: 21,
-              ),
-            ),
-          ] else ...[
-            const SizedBox(
-              width: 10,
-            ),
-
-            const Expanded(
-              child: Text(
-                'LIVE',
-                style:
-                    TextStyle(
-                  color:
-                      Colors.white,
-                  fontWeight:
-                      FontWeight.bold,
-                ),
-              ),
-            ),
-
-            GestureDetector(
-              onTap:
-                  showSpeedMenu,
-              child: Padding(
-                padding:
-                    const EdgeInsets
-                        .symmetric(
-                  horizontal: 4,
-                  vertical: 4,
-                ),
-                child: Text(
-                  speedLabel(
-                    playbackSpeed,
-                  ),
-                  style:
-                      const TextStyle(
-                    color:
-                        Colors.white,
-                    fontSize: 12,
-                    fontWeight:
-                        FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(width: 5),
-
-            GestureDetector(
-              onTap:
-                  toggleFullscreen,
-              child: Icon(
-                isFullscreen
-                    ? Icons
-                        .fullscreen_exit
-                    : Icons.fullscreen,
-                color:
-                    Colors.white,
-                size: 21,
-              ),
-            ),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -2590,135 +2258,114 @@ class _VideoCardState
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin:
-          const EdgeInsets.only(
-        bottom: 20,
-      ),
-      elevation: 2,
-      clipBehavior:
-          Clip.antiAlias,
-      shape:
-          RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(
-          18,
+    return PopScope(
+      canPop: !isFullscreen,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (isFullscreen && !didPop) {
+          await exitFullscreen();
+        }
+      },
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 20),
+        elevation: 2,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            buildPlayer(),
+
+            if (widget.isLive)
+              Container(
+                width: double.infinity,
+                color: Colors.red.withValues(alpha: 0.08),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 9,
+                ),
+                child: const Row(
+                  children: [
+                    Icon(
+                      Icons.circle,
+                      size: 9,
+                      color: Colors.red,
+                    ),
+                    SizedBox(width: 7),
+                    Text(
+                      'LIVE CLASS',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                16,
+                15,
+                16,
+                16,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  if (widget.description.isNotEmpty) ...[
+                    const SizedBox(height: 9),
+                    Text(
+                      widget.description,
+                      style: const TextStyle(
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 12),
+
+                  widget.isLive
+                      ? const Chip(
+                          avatar: Icon(
+                            Icons.live_tv,
+                            size: 17,
+                          ),
+                          label: Text('Live'),
+                        )
+                      : const Chip(
+                          avatar: Icon(
+                            Icons.video_library,
+                            size: 17,
+                          ),
+                          label: Text('Recorded'),
+                        ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
-      child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
-        children: [
-          buildPlayer(),
-
-          if (widget.isLive)
-            Container(
-              width: double.infinity,
-              color: Colors.red
-                  .withValues(
-                alpha: 0.08,
-              ),
-              padding:
-                  const EdgeInsets
-                      .symmetric(
-                horizontal: 16,
-                vertical: 9,
-              ),
-              child: const Row(
-                children: [
-                  Icon(
-                    Icons.circle,
-                    size: 9,
-                    color: Colors.red,
-                  ),
-                  SizedBox(width: 7),
-                  Text(
-                    'LIVE CLASS',
-                    style:
-                        TextStyle(
-                      color:
-                          Colors.red,
-                      fontWeight:
-                          FontWeight
-                              .bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          Padding(
-            padding:
-                const EdgeInsets.fromLTRB(
-              16,
-              15,
-              16,
-              16,
-            ),
-            child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment
-                      .start,
-              children: [
-                Text(
-                  widget.title,
-                  style:
-                      const TextStyle(
-                    fontSize: 18,
-                    fontWeight:
-                        FontWeight.bold,
-                  ),
-                ),
-
-                if (widget
-                    .description
-                    .isNotEmpty) ...[
-                  const SizedBox(
-                    height: 9,
-                  ),
-                  Text(
-                    widget.description,
-                    style:
-                        const TextStyle(
-                      color:
-                          Colors.grey,
-                    ),
-                  ),
-                ],
-
-                const SizedBox(
-                  height: 12,
-                ),
-
-                widget.isLive
-                    ? const Chip(
-                        avatar: Icon(
-                          Icons.live_tv,
-                          size: 17,
-                        ),
-                        label:
-                            Text(
-                          'Live',
-                        ),
-                      )
-                    : const Chip(
-                        avatar:
-                            Icon(
-                          Icons
-                              .video_library,
-                          size: 17,
-                        ),
-                        label:
-                            Text(
-                          'Recorded',
-                        ),
-                      ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
+  }
+
+  @override
+  void dispose() {
+    controlsTimer?.cancel();
+
+    controller?.removeListener(playerListener);
+    controller?.dispose();
+
+    super.dispose();
   }
 }
 
@@ -2726,16 +2373,14 @@ class _VideoCardState
 // PRACTICE
 // ============================================================
 
-class PracticePage
-    extends StatelessWidget {
+class PracticePage extends StatelessWidget {
   const PracticePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const SimplePage(
       title: 'Practice',
-      message:
-          'Practice questions जल्द उपलब्ध होंगे।',
+      message: 'Practice questions जल्द उपलब्ध होंगे।',
       icon: Icons.quiz_outlined,
     );
   }
@@ -2745,16 +2390,14 @@ class PracticePage
 // NOTES
 // ============================================================
 
-class NotesPage
-    extends StatelessWidget {
+class NotesPage extends StatelessWidget {
   const NotesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const SimplePage(
       title: 'Notes',
-      message:
-          'Study notes जल्द उपलब्ध होंगे।',
+      message: 'Study notes जल्द उपलब्ध होंगे।',
       icon: Icons.folder_outlined,
     );
   }
@@ -2764,8 +2407,7 @@ class NotesPage
 // SIMPLE PAGE
 // ============================================================
 
-class SimplePage
-    extends StatelessWidget {
+class SimplePage extends StatelessWidget {
   final String title;
   final String message;
   final IconData icon;
@@ -2784,38 +2426,28 @@ class SimplePage
         title: Text(
           title,
           style: const TextStyle(
-            fontWeight:
-                FontWeight.bold,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
       body: Center(
         child: Padding(
-          padding:
-              const EdgeInsets.all(
-            25,
-          ),
+          padding: const EdgeInsets.all(25),
           child: Column(
-            mainAxisAlignment:
-                MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 icon,
                 size: 75,
                 color: primaryBlue,
               ),
-              const SizedBox(
-                height: 20,
-              ),
+              const SizedBox(height: 20),
               Text(
                 message,
-                textAlign:
-                    TextAlign.center,
-                style:
-                    const TextStyle(
+                textAlign: TextAlign.center,
+                style: const TextStyle(
                   fontSize: 18,
-                  color:
-                      Colors.grey,
+                  color: Colors.grey,
                 ),
               ),
             ],
@@ -2830,19 +2462,15 @@ class SimplePage
 // PROFILE
 // ============================================================
 
-class ProfileScreen
-    extends StatefulWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() =>
-      _ProfileScreenState();
+  State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState
-    extends State<ProfileScreen> {
-  final nameController =
-      TextEditingController();
+class _ProfileScreenState extends State<ProfileScreen> {
+  final nameController = TextEditingController();
 
   bool saving = false;
 
@@ -2851,10 +2479,7 @@ class _ProfileScreenState
     super.initState();
 
     nameController.text =
-        FirebaseAuth.instance
-                .currentUser
-                ?.displayName ??
-            '';
+        FirebaseAuth.instance.currentUser?.displayName ?? '';
   }
 
   @override
@@ -2864,13 +2489,10 @@ class _ProfileScreenState
   }
 
   Future<void> changeName() async {
-    final name =
-        nameController.text.trim();
+    final name = nameController.text.trim();
 
     if (name.isEmpty) {
-      showMessage(
-        'Name खाली नहीं हो सकता',
-      );
+      showMessage('Name खाली नहीं हो सकता');
       return;
     }
 
@@ -2879,23 +2501,16 @@ class _ProfileScreenState
     });
 
     try {
-      final user =
-          FirebaseAuth.instance
-              .currentUser;
+      final user = FirebaseAuth.instance.currentUser;
 
       if (user == null) {
-        showMessage(
-          'User login नहीं है',
-        );
+        showMessage('User login नहीं है');
         return;
       }
 
-      await user.updateDisplayName(
-        name,
-      );
+      await user.updateDisplayName(name);
 
-      await FirebaseFirestore
-          .instance
+      await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .set(
@@ -2903,26 +2518,18 @@ class _ProfileScreenState
           'uid': user.uid,
           'name': name,
           'email': user.email,
-          'updatedAt':
-              FieldValue
-                  .serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
         },
-        SetOptions(
-          merge: true,
-        ),
+        SetOptions(merge: true),
       );
 
       await user.reload();
 
       if (mounted) {
-        showMessage(
-          'Name successfully updated',
-        );
+        showMessage('Name successfully updated');
       }
     } catch (_) {
-      showMessage(
-        'Name update नहीं हो पाया',
-      );
+      showMessage('Name update नहीं हो पाया');
     } finally {
       if (mounted) {
         setState(() {
@@ -2933,175 +2540,121 @@ class _ProfileScreenState
   }
 
   Future<void> logout() async {
-    await FirebaseAuth.instance
-        .signOut();
+    await FirebaseAuth.instance.signOut();
   }
 
   void showMessage(String message) {
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context)
-        .showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final user =
-        FirebaseAuth.instance
-            .currentUser;
+    final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           'Profile',
           style: TextStyle(
-            fontWeight:
-                FontWeight.bold,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
       body: SingleChildScrollView(
-        padding:
-            const EdgeInsets.all(
-          25,
-        ),
+        padding: const EdgeInsets.all(25),
         child: Column(
           children: [
             const CircleAvatar(
               radius: 52,
-              backgroundColor:
-                  primaryBlue,
+              backgroundColor: primaryBlue,
               child: Icon(
                 Icons.person,
                 size: 55,
                 color: Colors.white,
               ),
             ),
-            const SizedBox(
-              height: 18,
-            ),
+            const SizedBox(height: 18),
             const Text(
               'Student Profile',
               style: TextStyle(
                 fontSize: 27,
-                fontWeight:
-                    FontWeight.bold,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(
-              height: 28,
-            ),
+            const SizedBox(height: 28),
             AppTextField(
-              controller:
-                  nameController,
+              controller: nameController,
               hint: 'Student Name',
-              icon:
-                  Icons.person_outline,
+              icon: Icons.person_outline,
               textCapitalization:
-                  TextCapitalization
-                      .words,
+                  TextCapitalization.words,
             ),
-            const SizedBox(
-              height: 12,
-            ),
+            const SizedBox(height: 12),
             Text(
               user?.email ?? '',
-              style:
-                  const TextStyle(
+              style: const TextStyle(
                 color: Colors.grey,
               ),
             ),
-            const SizedBox(
-              height: 20,
-            ),
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               height: 55,
-              child:
-                  ElevatedButton(
-                onPressed:
-                    saving
-                        ? null
-                        : changeName,
-                style:
-                    ElevatedButton
-                        .styleFrom(
-                  backgroundColor:
-                      primaryBlue,
-                  foregroundColor:
-                      Colors.white,
+              child: ElevatedButton(
+                onPressed: saving ? null : changeName,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryBlue,
+                  foregroundColor: Colors.white,
                 ),
                 child: saving
                     ? const CircularProgressIndicator(
-                        color:
-                            Colors.white,
+                        color: Colors.white,
                       )
-                    : const Text(
-                        'CHANGE NAME',
-                      ),
+                    : const Text('CHANGE NAME'),
               ),
             ),
-            const SizedBox(
-              height: 35,
-            ),
+            const SizedBox(height: 35),
             const Align(
-              alignment:
-                  Alignment.centerLeft,
+              alignment: Alignment.centerLeft,
               child: Text(
                 'Admin Social Media',
-                style:
-                    TextStyle(
+                style: TextStyle(
                   fontSize: 21,
-                  fontWeight:
-                      FontWeight.bold,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            const SizedBox(
-              height: 15,
-            ),
+            const SizedBox(height: 15),
             SocialButton(
-              icon:
-                  Icons.play_circle_fill,
+              icon: Icons.play_circle_fill,
               title: 'YouTube',
-              url:
-                  'https://youtube.com/@rceditor999',
+              url: 'https://youtube.com/@rceditor999',
             ),
             SocialButton(
-              icon:
-                  Icons.camera_alt,
+              icon: Icons.camera_alt,
               title: 'Instagram',
-              url:
-                  'https://www.instagram.com/rceditor999/',
+              url: 'https://www.instagram.com/rceditor999/',
             ),
             SocialButton(
               icon: Icons.send,
               title: 'Telegram',
-              url:
-                  'https://t.me/RCEDITOR999',
+              url: 'https://t.me/RCEDITOR999',
             ),
-            const SizedBox(
-              height: 25,
-            ),
+            const SizedBox(height: 25),
             SizedBox(
               width: double.infinity,
               height: 55,
-              child:
-                  OutlinedButton.icon(
+              child: OutlinedButton.icon(
                 onPressed: logout,
-                icon: const Icon(
-                  Icons.logout,
-                ),
+                icon: const Icon(Icons.logout),
                 label: const Text(
                   'LOGOUT',
-                  style:
-                      TextStyle(
-                    fontWeight:
-                        FontWeight.bold,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -3117,8 +2670,7 @@ class _ProfileScreenState
 // SOCIAL BUTTON
 // ============================================================
 
-class SocialButton
-    extends StatelessWidget {
+class SocialButton extends StatelessWidget {
   final IconData icon;
   final String title;
   final String url;
@@ -3130,16 +2682,12 @@ class SocialButton
     required this.url,
   });
 
-  Future<void> openLink(
-    BuildContext context,
-  ) async {
-    final uri =
-        Uri.tryParse(url);
+  Future<void> openLink(BuildContext context) async {
+    final uri = Uri.tryParse(url);
 
     if (uri == null ||
         !uri.hasScheme ||
-        (uri.scheme != 'http' &&
-            uri.scheme != 'https')) {
+        (uri.scheme != 'http' && uri.scheme != 'https')) {
       showMessage(
         context,
         '$title link गलत है',
@@ -3148,15 +2696,12 @@ class SocialButton
     }
 
     try {
-      final opened =
-          await launchUrl(
+      final opened = await launchUrl(
         uri,
-        mode: LaunchMode
-            .externalApplication,
+        mode: LaunchMode.externalApplication,
       );
 
-      if (!opened &&
-          context.mounted) {
+      if (!opened && context.mounted) {
         showMessage(
           context,
           '$title खोलने में समस्या हुई',
@@ -3176,11 +2721,8 @@ class SocialButton
     BuildContext context,
     String message,
   ) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -3188,28 +2730,15 @@ class SocialButton
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      margin:
-          const EdgeInsets.only(
-        bottom: 10,
-      ),
+      margin: const EdgeInsets.only(bottom: 10),
       child: Material(
         color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(
-          16,
-        ),
+        borderRadius: BorderRadius.circular(16),
         child: InkWell(
-          borderRadius:
-              BorderRadius.circular(
-            16,
-          ),
-          onTap: () =>
-              openLink(context),
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => openLink(context),
           child: Padding(
-            padding:
-                const EdgeInsets.all(
-              16,
-            ),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Icon(
@@ -3217,23 +2746,17 @@ class SocialButton
                   size: 28,
                   color: primaryBlue,
                 ),
-                const SizedBox(
-                  width: 15,
-                ),
+                const SizedBox(width: 15),
                 Expanded(
                   child: Text(
                     title,
-                    style:
-                        const TextStyle(
+                    style: const TextStyle(
                       fontSize: 17,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                const Icon(
-                  Icons.open_in_new,
-                ),
+                const Icon(Icons.open_in_new),
               ],
             ),
           ),
@@ -3247,8 +2770,7 @@ class SocialButton
 // GROUP TITLE
 // ============================================================
 
-class GroupTitle
-    extends StatelessWidget {
+class GroupTitle extends StatelessWidget {
   final IconData icon;
   final String title;
 
@@ -3261,8 +2783,7 @@ class GroupTitle
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-          const EdgeInsets.only(
+      padding: const EdgeInsets.only(
         left: 4,
         bottom: 10,
       ),
@@ -3273,19 +2794,14 @@ class GroupTitle
             color: primaryBlue,
             size: 24,
           ),
-          const SizedBox(
-            width: 8,
-          ),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               title,
-              style:
-                  const TextStyle(
+              style: const TextStyle(
                 fontSize: 19,
-                fontWeight:
-                    FontWeight.bold,
-                color:
-                    primaryBlue,
+                fontWeight: FontWeight.bold,
+                color: primaryBlue,
               ),
             ),
           ),
@@ -3299,22 +2815,14 @@ class GroupTitle
 // TEXT FIELD
 // ============================================================
 
-class AppTextField
-    extends StatelessWidget {
-  final TextEditingController
-      controller;
-
+class AppTextField extends StatelessWidget {
+  final TextEditingController controller;
   final String hint;
   final IconData icon;
-
   final bool obscureText;
   final Widget? suffix;
-
-  final TextInputType?
-      keyboardType;
-
-  final TextCapitalization
-      textCapitalization;
+  final TextInputType? keyboardType;
+  final TextCapitalization textCapitalization;
 
   const AppTextField({
     super.key,
@@ -3324,8 +2832,7 @@ class AppTextField
     this.obscureText = false,
     this.suffix,
     this.keyboardType,
-    this.textCapitalization =
-        TextCapitalization.none,
+    this.textCapitalization = TextCapitalization.none,
   });
 
   @override
@@ -3334,55 +2841,31 @@ class AppTextField
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
-      textCapitalization:
-          textCapitalization,
-      decoration:
-          InputDecoration(
+      textCapitalization: textCapitalization,
+      decoration: InputDecoration(
         hintText: hint,
-        prefixIcon:
-            Icon(icon),
-        suffixIcon:
-            suffix,
+        prefixIcon: Icon(icon),
+        suffixIcon: suffix,
         filled: true,
-        fillColor:
-            Colors.white,
-        border:
-            OutlineInputBorder(
-          borderRadius:
-              BorderRadius.circular(
-            18,
-          ),
-          borderSide:
-              BorderSide.none,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide.none,
         ),
-        enabledBorder:
-            OutlineInputBorder(
-          borderRadius:
-              BorderRadius.circular(
-            18,
-          ),
-          borderSide:
-              BorderSide(
-            color:
-                Colors.grey.shade300,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide(
+            color: Colors.grey.shade300,
           ),
         ),
-        focusedBorder:
-            OutlineInputBorder(
-          borderRadius:
-              BorderRadius.circular(
-            18,
-          ),
-          borderSide:
-              const BorderSide(
-            color:
-                primaryBlue,
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(
+            color: primaryBlue,
             width: 2,
           ),
         ),
-        contentPadding:
-            const EdgeInsets
-                .symmetric(
+        contentPadding: const EdgeInsets.symmetric(
           vertical: 18,
           horizontal: 18,
         ),
