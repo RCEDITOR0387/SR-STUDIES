@@ -12,9 +12,15 @@ const Color backgroundColor = Color(0xFFF6F7FC);
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // IMPORTANT:
+  // App ko globally portrait par lock nahi kar rahe.
+  // Video fullscreen ke time landscape allowed rahega.
   await SystemChrome.setPreferredOrientations(
     const [
       DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
     ],
   );
 
@@ -1022,9 +1028,39 @@ class SubjectCard extends StatelessWidget {
   });
 
   String get firestoreSubjectName {
-    return title
-        .toLowerCase()
-        .replaceAll(' ', '_');
+    switch (title) {
+      case 'History':
+        return 'history';
+
+      case 'Economics':
+        return 'economics';
+
+      case 'Geography':
+        return 'geography';
+
+      case 'Polity':
+        return 'polity';
+
+      case 'Biology':
+        return 'biology';
+
+      case 'Chemistry':
+        return 'chemistry';
+
+      case 'Physics':
+        return 'physics';
+
+      case 'World Map':
+        return 'world_map';
+
+      case 'Indian Map':
+        return 'indian_map';
+
+      default:
+        return title
+            .toLowerCase()
+            .replaceAll(' ', '_');
+    }
   }
 
   @override
@@ -1090,9 +1126,37 @@ class SubjectCard extends StatelessWidget {
 
 // ============================================================
 // SUBJECT VIDEOS
+//
+// IMPORTANT FIRESTORE STRUCTURE:
+//
+// subjects
+//   ├── history
+//   │    └── videos
+//   │         ├── video1
+//   │         └── video2
+//   │
+//   ├── economics
+//   │    └── videos
+//   │
+//   ├── geography
+//   │    └── videos
+//   │
+//   ├── polity
+//   │    └── videos
+//   │
+//   ├── biology
+//   │    └── videos
+//   │
+//   ├── chemistry
+//   │    └── videos
+//   │
+//   └── physics
+//        └── videos
+//
+// Har subject sirf apne folder se videos lega.
 // ============================================================
 
-class SubjectVideosPage extends StatelessWidget {
+class SubjectVideosPage extends StatefulWidget {
   final String subjectName;
   final String firestoreName;
 
@@ -1102,69 +1166,23 @@ class SubjectVideosPage extends StatelessWidget {
     required this.firestoreName,
   });
 
+  @override
+  State<SubjectVideosPage> createState() =>
+      _SubjectVideosPageState();
+}
+
+class _SubjectVideosPageState
+    extends State<SubjectVideosPage> {
+
   Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>>
       loadVideos() async {
-    final Map<String,
-            QueryDocumentSnapshot<Map<String, dynamic>>>
-        allVideos = {};
+    final snapshot = await FirebaseFirestore.instance
+        .collection('subjects')
+        .doc(widget.firestoreName)
+        .collection('videos')
+        .get();
 
-    // ----------------------------------------------------------
-    // STRUCTURE 1
-    //
-    // subjects/history/videos/video1
-    // ----------------------------------------------------------
-
-    try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('subjects')
-          .doc(firestoreName)
-          .collection('videos')
-          .get();
-
-      for (final doc in snapshot.docs) {
-        allVideos['subjects_${doc.id}'] = doc;
-      }
-    } catch (_) {}
-
-    // ----------------------------------------------------------
-    // STRUCTURE 2
-    //
-    // history/videos/history/video1
-    // ----------------------------------------------------------
-
-    try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection(firestoreName)
-          .doc('videos')
-          .collection(firestoreName)
-          .get();
-
-      for (final doc in snapshot.docs) {
-        allVideos['nested_${doc.id}'] = doc;
-      }
-    } catch (_) {}
-
-    // ----------------------------------------------------------
-    // STRUCTURE 3
-    //
-    // history/videos/video1
-    //
-    // This is also supported.
-    // ----------------------------------------------------------
-
-    try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection(firestoreName)
-          .doc('videos')
-          .collection('items')
-          .get();
-
-      for (final doc in snapshot.docs) {
-        allVideos['items_${doc.id}'] = doc;
-      }
-    } catch (_) {}
-
-    final videos = allVideos.values.toList();
+    final videos = snapshot.docs.toList();
 
     videos.sort((a, b) {
       final aTime = a.data()['createdAt'];
@@ -1181,11 +1199,47 @@ class SubjectVideosPage extends StatelessWidget {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    // Normal subject page portrait.
+    SystemChrome.setPreferredOrientations(
+      const [
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ],
+    );
+
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.edgeToEdge,
+    );
+  }
+
+  @override
+  void dispose() {
+    // Page close hone par normal orientations restore.
+    SystemChrome.setPreferredOrientations(
+      const [
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ],
+    );
+
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.edgeToEdge,
+    );
+
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          subjectName,
+          widget.subjectName,
           style: const TextStyle(
             fontWeight: FontWeight.bold,
           ),
@@ -1209,7 +1263,8 @@ class SubjectVideosPage extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(25),
                 child: Text(
-                  'Videos load नहीं हो सके।\n\n${snapshot.error}',
+                  'Videos load नहीं हो सके।\n\n'
+                  '${snapshot.error}',
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -1219,22 +1274,22 @@ class SubjectVideosPage extends StatelessWidget {
           final docs = snapshot.data ?? [];
 
           if (docs.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(25),
+                padding: const EdgeInsets.all(25),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.video_library_outlined,
                       size: 75,
                       color: primaryBlue,
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     Text(
-                      'अभी कोई video उपलब्ध नहीं है',
+                      'अभी ${widget.subjectName} का कोई video उपलब्ध नहीं है',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -1260,11 +1315,6 @@ class SubjectVideosPage extends StatelessWidget {
               final description =
                   (data['description'] ?? '').toString();
 
-              // ------------------------------------------------
-              // IMPORTANT:
-              // Multiple possible Firestore field names.
-              // ------------------------------------------------
-
               final videoUrl = getVideoValue(data);
 
               final isLive =
@@ -1272,6 +1322,9 @@ class SubjectVideosPage extends StatelessWidget {
                   data['type'] == 'live';
 
               return VideoCard(
+                key: ValueKey(
+                  '${widget.firestoreName}_${docs[index].id}',
+                ),
                 title: title,
                 description: description,
                 videoUrl: videoUrl,
@@ -1294,7 +1347,6 @@ class SubjectVideosPage extends StatelessWidget {
       'link',
       'videoId',
       'youtubeId',
-      'id',
     ];
 
     for (final field in possibleFields) {
@@ -1309,6 +1361,9 @@ class SubjectVideosPage extends StatelessWidget {
       }
     }
 
+    // IMPORTANT:
+    // Firestore document ID ko video URL nahi maan rahe.
+    // Isse galat video load hone ka chance nahi rahega.
     return '';
   }
 }
@@ -1374,14 +1429,10 @@ class _VideoCardState extends State<VideoCard> {
       return null;
     }
 
-    // Remove surrounding spaces.
-    value = value.trim();
-
-    // --------------------------------------------------------
-    // If user directly entered a YouTube video ID.
-    //
-    // Normal YouTube IDs are 11 characters.
-    // --------------------------------------------------------
+    value = value
+        .replaceAll('"', '')
+        .replaceAll("'", '')
+        .trim();
 
     final directId = RegExp(
       r'^[A-Za-z0-9_-]{11}$',
@@ -1391,15 +1442,8 @@ class _VideoCardState extends State<VideoCard> {
       return value;
     }
 
-    // --------------------------------------------------------
-    // Remove accidental quotes.
-    // --------------------------------------------------------
-
-    value = value.replaceAll('"', '').replaceAll("'", '');
-
     Uri? uri = Uri.tryParse(value);
 
-    // If URL has no scheme, try https://
     if (uri == null || uri.host.isEmpty) {
       uri = Uri.tryParse('https://$value');
     }
@@ -1410,15 +1454,11 @@ class _VideoCardState extends State<VideoCard> {
 
     final host = uri.host.toLowerCase();
 
-    // --------------------------------------------------------
-    // youtube.com
-    // --------------------------------------------------------
-
     if (host == 'youtube.com' ||
         host == 'www.youtube.com' ||
         host == 'm.youtube.com' ||
         host == 'music.youtube.com') {
-      // /watch?v=XXXXXXXXXXX
+
       final queryId = uri.queryParameters['v'];
 
       if (queryId != null &&
@@ -1426,7 +1466,6 @@ class _VideoCardState extends State<VideoCard> {
         return queryId;
       }
 
-      // /shorts/XXXXXXXXXXX
       if (uri.pathSegments.isNotEmpty &&
           uri.pathSegments.first == 'shorts' &&
           uri.pathSegments.length >= 2) {
@@ -1437,7 +1476,6 @@ class _VideoCardState extends State<VideoCard> {
         }
       }
 
-      // /embed/XXXXXXXXXXX
       if (uri.pathSegments.isNotEmpty &&
           uri.pathSegments.first == 'embed' &&
           uri.pathSegments.length >= 2) {
@@ -1448,7 +1486,6 @@ class _VideoCardState extends State<VideoCard> {
         }
       }
 
-      // /live/XXXXXXXXXXX
       if (uri.pathSegments.isNotEmpty &&
           uri.pathSegments.first == 'live' &&
           uri.pathSegments.length >= 2) {
@@ -1459,10 +1496,6 @@ class _VideoCardState extends State<VideoCard> {
         }
       }
     }
-
-    // --------------------------------------------------------
-    // youtu.be/XXXXXXXXXXX
-    // --------------------------------------------------------
 
     if (host == 'youtu.be' ||
         host == 'www.youtu.be') {
@@ -1475,13 +1508,9 @@ class _VideoCardState extends State<VideoCard> {
       }
     }
 
-    // --------------------------------------------------------
-    // Last fallback:
-    // Search the entire string for an 11-character YouTube ID.
-    // --------------------------------------------------------
-
     final fallback = RegExp(
-      r'(?:v=|youtu\.be/|/shorts/|/embed/|/live/)([A-Za-z0-9_-]{11})',
+      r'(?:v=|youtu\.be/|/shorts/|/embed/|/live/)'
+      r'([A-Za-z0-9_-]{11})',
       caseSensitive: false,
     );
 
@@ -1502,18 +1531,16 @@ class _VideoCardState extends State<VideoCard> {
     final input = widget.videoUrl.trim();
 
     if (input.isEmpty) {
-      setStateSafeError(
-        'Video link Firestore में नहीं मिला',
-      );
+      errorMessage =
+          'Video link Firestore में नहीं मिला';
       return;
     }
 
     final id = extractYoutubeId(input);
 
     if (id == null || id.isEmpty) {
-      setStateSafeError(
-        'YouTube video link गलत है\n\n$linkPreview',
-      );
+      errorMessage =
+          'YouTube video link गलत है\n\n$linkPreview';
       return;
     }
 
@@ -1521,7 +1548,7 @@ class _VideoCardState extends State<VideoCard> {
 
     controller = YoutubePlayerController(
       initialVideoId: id,
-      flags: const YoutubePlayerFlags(
+      flags: YoutubePlayerFlags(
         autoPlay: false,
         mute: false,
         enableCaption: true,
@@ -1529,6 +1556,7 @@ class _VideoCardState extends State<VideoCard> {
         hideControls: false,
         loop: false,
         forceHD: false,
+        isLive: widget.isLive,
       ),
     );
 
@@ -1541,10 +1569,6 @@ class _VideoCardState extends State<VideoCard> {
     }
 
     return '${widget.videoUrl.substring(0, 100)}...';
-  }
-
-  void setStateSafeError(String message) {
-    errorMessage = message;
   }
 
   // ==========================================================
@@ -1566,20 +1590,14 @@ class _VideoCardState extends State<VideoCard> {
     }
   }
 
+  // ==========================================================
+  // DISPOSE
+  // ==========================================================
+
   @override
   void dispose() {
     controller?.removeListener(playerListener);
     controller?.dispose();
-
-    SystemChrome.setPreferredOrientations(
-      const [
-        DeviceOrientation.portraitUp,
-      ],
-    );
-
-    SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.edgeToEdge,
-    );
 
     super.dispose();
   }
@@ -1616,14 +1634,15 @@ class _VideoCardState extends State<VideoCard> {
 
     controller!.toggleFullScreenMode();
 
-    await SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.edgeToEdge,
-    );
-
     await SystemChrome.setPreferredOrientations(
       const [
         DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
       ],
+    );
+
+    await SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.edgeToEdge,
     );
 
     if (mounted) {
@@ -1731,7 +1750,7 @@ class _VideoCardState extends State<VideoCard> {
   }
 
   // ==========================================================
-  // QUALITY INFO
+  // QUALITY
   // ==========================================================
 
   void showQualityInfo() {
@@ -1777,7 +1796,7 @@ class _VideoCardState extends State<VideoCard> {
   }
 
   // ==========================================================
-  // OPEN YOUTUBE EXTERNALLY
+  // OPEN YOUTUBE
   // ==========================================================
 
   Future<void> openYoutube() async {
@@ -1847,170 +1866,198 @@ class _VideoCardState extends State<VideoCard> {
       );
     }
 
-    return YoutubePlayer(
-      controller: controller!,
-      aspectRatio: 16 / 9,
+    // IMPORTANT:
+    // YoutubePlayerBuilder fullscreen ke time
+    // player ko fullscreen layer me handle karta hai.
+    return YoutubePlayerBuilder(
+      onEnterFullScreen: () async {
+        await SystemChrome.setEnabledSystemUIMode(
+          SystemUiMode.immersiveSticky,
+        );
 
-      topActions: [
-        if (widget.isLive)
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 9,
-              vertical: 5,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.red,
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.circle,
-                  size: 8,
-                  color: Colors.white,
-                ),
-                SizedBox(width: 5),
-                Text(
-                  'LIVE',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        const Spacer(),
-        GestureDetector(
-          onTap: showQualityInfo,
-          child: const Padding(
-            padding: EdgeInsets.all(8),
-            child: Icon(
-              Icons.high_quality,
-              color: Colors.white,
-            ),
-          ),
+        await SystemChrome.setPreferredOrientations(
+          const [
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight,
+          ],
+        );
+
+        if (mounted) {
+          setState(() {
+            isFullscreen = true;
+          });
+        }
+      },
+      onExitFullScreen: () async {
+        await SystemChrome.setPreferredOrientations(
+          const [
+            DeviceOrientation.portraitUp,
+            DeviceOrientation.portraitDown,
+          ],
+        );
+
+        await SystemChrome.setEnabledSystemUIMode(
+          SystemUiMode.edgeToEdge,
+        );
+
+        if (mounted) {
+          setState(() {
+            isFullscreen = false;
+          });
+        }
+      },
+      player: YoutubePlayer(
+        controller: controller!,
+        aspectRatio: 16 / 9,
+        showVideoProgressIndicator: !widget.isLive,
+        progressIndicatorColor: primaryBlue,
+        progressColors: const ProgressBarColors(
+          playedColor: primaryBlue,
+          handleColor: primaryBlue,
+          bufferedColor: Colors.grey,
+          backgroundColor: Colors.white30,
         ),
-      ],
-
-      bottomActions: [
-        const PlayPauseButton(),
-
-        if (!widget.isLive) ...[
-          const SizedBox(width: 8),
-          const CurrentPosition(),
-          const SizedBox(width: 8),
-          const ProgressBar(
-            isExpanded: true,
-          ),
-          const SizedBox(width: 8),
-          const RemainingDuration(),
-        ] else ...[
-          const SizedBox(width: 10),
-          const Expanded(
-            child: Text(
-              'LIVE',
-              style: TextStyle(
+        topActions: [
+          if (widget.isLive)
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 9,
+                vertical: 5,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.circle,
+                    size: 8,
+                    color: Colors.white,
+                  ),
+                  SizedBox(width: 5),
+                  Text(
+                    'LIVE',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const Spacer(),
+          GestureDetector(
+            onTap: showQualityInfo,
+            child: const Padding(
+              padding: EdgeInsets.all(8),
+              child: Icon(
+                Icons.high_quality,
                 color: Colors.white,
-                fontWeight: FontWeight.bold,
               ),
             ),
           ),
         ],
+        bottomActions: [
+          const PlayPauseButton(),
 
-        const SizedBox(width: 8),
-
-        GestureDetector(
-          onTap: toggleMute,
-          child: Icon(
-            muted
-                ? Icons.volume_off
-                : Icons.volume_up,
-            color: Colors.white,
-          ),
-        ),
-
-        const SizedBox(width: 10),
-
-        GestureDetector(
-          onTap: showSpeedMenu,
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 7,
-              vertical: 4,
+          if (!widget.isLive) ...[
+            const SizedBox(width: 8),
+            const CurrentPosition(),
+            const SizedBox(width: 8),
+            const ProgressBar(
+              isExpanded: true,
             ),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Colors.white,
-              ),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              '${playbackSpeed}x',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+            const SizedBox(width: 8),
+            const RemainingDuration(),
+          ] else ...[
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'LIVE',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
+          ],
+
+          const SizedBox(width: 8),
+
+          GestureDetector(
+            onTap: toggleMute,
+            child: Icon(
+              muted
+                  ? Icons.volume_off
+                  : Icons.volume_up,
+              color: Colors.white,
+            ),
           ),
-        ),
 
-        const SizedBox(width: 10),
+          const SizedBox(width: 10),
 
-        GestureDetector(
-          onTap: showQualityInfo,
-          child: const Icon(
-            Icons.settings,
-            color: Colors.white,
+          GestureDetector(
+            onTap: showSpeedMenu,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 7,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.white,
+                ),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                '${playbackSpeed}x',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ),
-        ),
 
-        const SizedBox(width: 8),
+          const SizedBox(width: 10),
 
-        GestureDetector(
-          onTap: toggleFullscreen,
-          child: Icon(
-            isFullscreen
-                ? Icons.fullscreen_exit
-                : Icons.fullscreen,
-            color: Colors.white,
+          GestureDetector(
+            onTap: showQualityInfo,
+            child: const Icon(
+              Icons.settings,
+              color: Colors.white,
+            ),
           ),
-        ),
-      ],
 
-      showVideoProgressIndicator:
-          !widget.isLive,
+          const SizedBox(width: 8),
 
-      progressIndicatorColor:
-          primaryBlue,
-
-      progressColors:
-          const ProgressBarColors(
-        playedColor: primaryBlue,
-        handleColor: primaryBlue,
-        bufferedColor: Colors.grey,
-        backgroundColor: Colors.white30,
+          GestureDetector(
+            onTap: toggleFullscreen,
+            child: Icon(
+              isFullscreen
+                  ? Icons.fullscreen_exit
+                  : Icons.fullscreen,
+              color: Colors.white,
+            ),
+          ),
+        ],
       ),
+      builder: (context, player) {
+        return player;
+      },
     );
   }
 
+  // ==========================================================
+  // BUILD
+  // ==========================================================
+
   @override
   Widget build(BuildContext context) {
-    if (isFullscreen) {
-      return Scaffold(
-        backgroundColor: Colors.black,
-        body: Center(
-          child: SizedBox(
-            width: MediaQuery.of(context).size.width,
-            child: buildPlayer(),
-          ),
-        ),
-      );
-    }
-
     return Card(
       margin: const EdgeInsets.only(
         bottom: 18,
