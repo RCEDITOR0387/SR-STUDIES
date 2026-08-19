@@ -12,8 +12,6 @@ const Color backgroundColor = Color(0xFFF6F7FC);
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // App normally portrait me rahega.
-  // Video fullscreen hone par landscape allow hoga.
   await SystemChrome.setPreferredOrientations(
     const [
       DeviceOrientation.portraitUp,
@@ -135,7 +133,8 @@ class AuthGate extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (snapshot.connectionState ==
+            ConnectionState.waiting) {
           return const Scaffold(
             body: Center(
               child: CircularProgressIndicator(
@@ -163,7 +162,8 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<LoginScreen> createState() =>
+      _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -185,7 +185,9 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = passwordController.text;
 
     if (email.isEmpty || password.isEmpty) {
-      showMessage('Email और Password दोनों भरें');
+      showMessage(
+        'Email और Password दोनों भरें',
+      );
       return;
     }
 
@@ -195,7 +197,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final credential =
-          await FirebaseAuth.instance.signInWithEmailAndPassword(
+          await FirebaseAuth.instance
+              .signInWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -209,9 +212,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
       await user.reload();
 
-      final currentUser = FirebaseAuth.instance.currentUser;
+      final currentUser =
+          FirebaseAuth.instance.currentUser;
 
-      if (currentUser != null && !currentUser.emailVerified) {
+      if (currentUser != null &&
+          !currentUser.emailVerified) {
         await FirebaseAuth.instance.signOut();
 
         if (mounted) {
@@ -223,7 +228,9 @@ class _LoginScreenState extends State<LoginScreen> {
     } on FirebaseAuthException catch (e) {
       showMessage(authError(e.code));
     } catch (_) {
-      showMessage('Login में समस्या हुई');
+      showMessage(
+        'Login में समस्या हुई',
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -308,7 +315,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: emailController,
                 hint: 'Email',
                 icon: Icons.email_outlined,
-                keyboardType: TextInputType.emailAddress,
+                keyboardType:
+                    TextInputType.emailAddress,
               ),
               const SizedBox(height: 18),
               AppTextField(
@@ -319,7 +327,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 suffix: IconButton(
                   onPressed: () {
                     setState(() {
-                      obscurePassword = !obscurePassword;
+                      obscurePassword =
+                          !obscurePassword;
                     });
                   },
                   icon: Icon(
@@ -355,12 +364,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 height: 60,
                 child: ElevatedButton(
-                  onPressed: loading ? null : login,
+                  onPressed:
+                      loading ? null : login,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryBlue,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius:
+                          BorderRadius.circular(30),
                     ),
                   ),
                   child: loading
@@ -371,7 +382,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           'LOGIN',
                           style: TextStyle(
                             fontSize: 19,
-                            fontWeight: FontWeight.bold,
+                            fontWeight:
+                                FontWeight.bold,
                           ),
                         ),
                 ),
@@ -382,7 +394,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const SignupScreen(),
+                      builder: (_) =>
+                          const SignupScreen(),
                     ),
                   );
                 },
@@ -411,10 +424,12 @@ class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
 
   @override
-  State<SignupScreen> createState() => _SignupScreenState();
+  State<SignupScreen> createState() =>
+      _SignupScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
+class _SignupScreenState
+    extends State<SignupScreen> {
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -435,8 +450,12 @@ class _SignupScreenState extends State<SignupScreen> {
     final email = emailController.text.trim();
     final password = passwordController.text;
 
-    if (name.isEmpty || email.isEmpty || password.isEmpty) {
-      showMessage('Name, Email और Password भरें');
+    if (name.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty) {
+      showMessage(
+        'Name, Email और Password भरें',
+      );
       return;
     }
 
@@ -453,7 +472,8 @@ class _SignupScreenState extends State<SignupScreen> {
 
     try {
       final credential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          await FirebaseAuth.instance
+              .createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -472,7 +492,8 @@ class _SignupScreenState extends State<SignupScreen> {
           'uid': user.uid,
           'name': name,
           'email': email,
-          'createdAt': FieldValue.serverTimestamp(),
+          'createdAt':
+              FieldValue.serverTimestamp(),
         });
       }
 
@@ -484,7 +505,8 @@ class _SignupScreenState extends State<SignupScreen> {
         context: context,
         builder: (_) {
           return AlertDialog(
-            title: const Text('Account Created'),
+            title:
+                const Text('Account Created'),
             content: const Text(
               'आपके Email पर verification link भेजा गया है। '
               'Email verify करने के बाद Login करें।',
@@ -505,9 +527,13 @@ class _SignupScreenState extends State<SignupScreen> {
         Navigator.pop(context);
       }
     } on FirebaseAuthException catch (e) {
-      showMessage(signupError(e.code));
+      showMessage(
+        signupError(e.code),
+      );
     } catch (_) {
-      showMessage('Account बनाने में समस्या हुई');
+      showMessage(
+        'Account बनाने में समस्या हुई',
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -553,7 +579,8 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Account'),
+        title:
+            const Text('Create Account'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(28),
@@ -569,14 +596,16 @@ class _SignupScreenState extends State<SignupScreen> {
               controller: nameController,
               hint: 'Student Name',
               icon: Icons.person_outline,
-              textCapitalization: TextCapitalization.words,
+              textCapitalization:
+                  TextCapitalization.words,
             ),
             const SizedBox(height: 18),
             AppTextField(
               controller: emailController,
               hint: 'Email',
               icon: Icons.email_outlined,
-              keyboardType: TextInputType.emailAddress,
+              keyboardType:
+                  TextInputType.emailAddress,
             ),
             const SizedBox(height: 18),
             AppTextField(
@@ -587,7 +616,8 @@ class _SignupScreenState extends State<SignupScreen> {
               suffix: IconButton(
                 onPressed: () {
                   setState(() {
-                    obscurePassword = !obscurePassword;
+                    obscurePassword =
+                        !obscurePassword;
                   });
                 },
                 icon: Icon(
@@ -602,7 +632,8 @@ class _SignupScreenState extends State<SignupScreen> {
               width: double.infinity,
               height: 58,
               child: ElevatedButton(
-                onPressed: loading ? null : signup,
+                onPressed:
+                    loading ? null : signup,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryBlue,
                   foregroundColor: Colors.white,
@@ -614,7 +645,8 @@ class _SignupScreenState extends State<SignupScreen> {
                     : const Text(
                         'CREATE ACCOUNT',
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
+                          fontWeight:
+                              FontWeight.bold,
                         ),
                       ),
               ),
@@ -630,7 +662,8 @@ class _SignupScreenState extends State<SignupScreen> {
 // FORGOT PASSWORD
 // ============================================================
 
-class ForgotPasswordScreen extends StatefulWidget {
+class ForgotPasswordScreen
+    extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
@@ -651,10 +684,13 @@ class _ForgotPasswordScreenState
   }
 
   Future<void> resetPassword() async {
-    final email = emailController.text.trim();
+    final email =
+        emailController.text.trim();
 
     if (email.isEmpty) {
-      showMessage('Registered Email डालें');
+      showMessage(
+        'Registered Email डालें',
+      );
       return;
     }
 
@@ -663,7 +699,8 @@ class _ForgotPasswordScreenState
     });
 
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(
+      await FirebaseAuth.instance
+          .sendPasswordResetEmail(
         email: email,
       );
 
@@ -673,9 +710,13 @@ class _ForgotPasswordScreenState
         );
       }
     } on FirebaseAuthException catch (e) {
-      showMessage('Password reset failed: ${e.code}');
+      showMessage(
+        'Password reset failed: ${e.code}',
+      );
     } catch (_) {
-      showMessage('Password reset में समस्या हुई');
+      showMessage(
+        'Password reset में समस्या हुई',
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -699,7 +740,8 @@ class _ForgotPasswordScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Forgot Password'),
+        title:
+            const Text('Forgot Password'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(30),
@@ -724,14 +766,17 @@ class _ForgotPasswordScreenState
               controller: emailController,
               hint: 'Registered Email',
               icon: Icons.email_outlined,
-              keyboardType: TextInputType.emailAddress,
+              keyboardType:
+                  TextInputType.emailAddress,
             ),
             const SizedBox(height: 25),
             SizedBox(
               width: double.infinity,
               height: 58,
               child: ElevatedButton(
-                onPressed: loading ? null : resetPassword,
+                onPressed: loading
+                    ? null
+                    : resetPassword,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryBlue,
                   foregroundColor: Colors.white,
@@ -743,7 +788,8 @@ class _ForgotPasswordScreenState
                     : const Text(
                         'SEND RESET LINK',
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
+                          fontWeight:
+                              FontWeight.bold,
                         ),
                       ),
               ),
@@ -759,7 +805,8 @@ class _ForgotPasswordScreenState
 // MAIN NAVIGATION
 // ============================================================
 
-class MainNavigation extends StatefulWidget {
+class MainNavigation
+    extends StatefulWidget {
   const MainNavigation({super.key});
 
   @override
@@ -786,7 +833,8 @@ class _MainNavigationState
         index: currentIndex,
         children: pages,
       ),
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar:
+          NavigationBar(
         selectedIndex: currentIndex,
         onDestinationSelected: (index) {
           setState(() {
@@ -795,28 +843,48 @@ class _MainNavigationState
         },
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
+            icon: Icon(
+              Icons.home_outlined,
+            ),
+            selectedIcon: Icon(
+              Icons.home,
+            ),
             label: 'Home',
           ),
           NavigationDestination(
-            icon: Icon(Icons.menu_book_outlined),
-            selectedIcon: Icon(Icons.menu_book),
+            icon: Icon(
+              Icons.menu_book_outlined,
+            ),
+            selectedIcon: Icon(
+              Icons.menu_book,
+            ),
             label: 'Subjects',
           ),
           NavigationDestination(
-            icon: Icon(Icons.quiz_outlined),
-            selectedIcon: Icon(Icons.quiz),
+            icon: Icon(
+              Icons.quiz_outlined,
+            ),
+            selectedIcon: Icon(
+              Icons.quiz,
+            ),
             label: 'Practice',
           ),
           NavigationDestination(
-            icon: Icon(Icons.folder_outlined),
-            selectedIcon: Icon(Icons.folder),
+            icon: Icon(
+              Icons.folder_outlined,
+            ),
+            selectedIcon: Icon(
+              Icons.folder,
+            ),
             label: 'Notes',
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
+            icon: Icon(
+              Icons.person_outline,
+            ),
+            selectedIcon: Icon(
+              Icons.person,
+            ),
             label: 'Profile',
           ),
         ],
@@ -847,24 +915,29 @@ class HomePage extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(18),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
           children: [
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(22),
+              padding:
+                  const EdgeInsets.all(22),
               decoration: BoxDecoration(
                 color: primaryBlue,
-                borderRadius: BorderRadius.circular(26),
+                borderRadius:
+                    BorderRadius.circular(26),
               ),
               child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Welcome to SR STUDIES',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                      fontWeight:
+                          FontWeight.bold,
                     ),
                   ),
                   SizedBox(height: 10),
@@ -888,22 +961,40 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 18),
             const SubjectSection(
-              title: 'ARTS & SOCIAL SCIENCE',
-              icon: Icons.menu_book_outlined,
+              title:
+                  'ARTS & SOCIAL SCIENCE',
+              icon:
+                  Icons.menu_book_outlined,
               subjects: [
                 ['History', Icons.history_edu],
-                ['Economics', Icons.currency_rupee],
+                [
+                  'Economics',
+                  Icons.currency_rupee
+                ],
                 ['Geography', Icons.public],
-                ['Polity', Icons.account_balance],
+                [
+                  'Polity',
+                  Icons.account_balance
+                ],
               ],
             ),
             const SubjectSection(
               title: 'SCIENCE',
-              icon: Icons.science_outlined,
+              icon:
+                  Icons.science_outlined,
               subjects: [
-                ['Biology', Icons.biotech_outlined],
-                ['Chemistry', Icons.science],
-                ['Physics', Icons.bolt_outlined],
+                [
+                  'Biology',
+                  Icons.biotech_outlined
+                ],
+                [
+                  'Chemistry',
+                  Icons.science
+                ],
+                [
+                  'Physics',
+                  Icons.bolt_outlined
+                ],
               ],
             ),
             const SubjectSection(
@@ -925,7 +1016,8 @@ class HomePage extends StatelessWidget {
 // SUBJECTS
 // ============================================================
 
-class SubjectsPage extends StatelessWidget {
+class SubjectsPage
+    extends StatelessWidget {
   const SubjectsPage({super.key});
 
   @override
@@ -940,25 +1032,44 @@ class SubjectsPage extends StatelessWidget {
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(18),
+        padding:
+            const EdgeInsets.all(18),
         children: const [
           SubjectSection(
-            title: 'ARTS & SOCIAL SCIENCE',
-            icon: Icons.menu_book_outlined,
+            title:
+                'ARTS & SOCIAL SCIENCE',
+            icon:
+                Icons.menu_book_outlined,
             subjects: [
               ['History', Icons.history_edu],
-              ['Economics', Icons.currency_rupee],
+              [
+                'Economics',
+                Icons.currency_rupee
+              ],
               ['Geography', Icons.public],
-              ['Polity', Icons.account_balance],
+              [
+                'Polity',
+                Icons.account_balance
+              ],
             ],
           ),
           SubjectSection(
             title: 'SCIENCE',
-            icon: Icons.science_outlined,
+            icon:
+                Icons.science_outlined,
             subjects: [
-              ['Biology', Icons.biotech_outlined],
-              ['Chemistry', Icons.science],
-              ['Physics', Icons.bolt_outlined],
+              [
+                'Biology',
+                Icons.biotech_outlined
+              ],
+              [
+                'Chemistry',
+                Icons.science
+              ],
+              [
+                'Physics',
+                Icons.bolt_outlined
+              ],
             ],
           ),
           SubjectSection(
@@ -979,7 +1090,8 @@ class SubjectsPage extends StatelessWidget {
 // SUBJECT SECTION
 // ============================================================
 
-class SubjectSection extends StatelessWidget {
+class SubjectSection
+    extends StatelessWidget {
   final String title;
   final IconData icon;
   final List<List<dynamic>> subjects;
@@ -994,7 +1106,8 @@ class SubjectSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
       children: [
         GroupTitle(
           icon: icon,
@@ -1016,7 +1129,8 @@ class SubjectSection extends StatelessWidget {
 // SUBJECT CARD
 // ============================================================
 
-class SubjectCard extends StatelessWidget {
+class SubjectCard
+    extends StatelessWidget {
   final String title;
   final IconData icon;
 
@@ -1025,11 +1139,6 @@ class SubjectCard extends StatelessWidget {
     required this.title,
     required this.icon,
   });
-
-  // ----------------------------------------------------------
-  // IMPORTANT:
-  // Har subject ka Firestore path yahin decide hota hai.
-  // ----------------------------------------------------------
 
   String get firestoreSubjectName {
     switch (title) {
@@ -1061,7 +1170,9 @@ class SubjectCard extends StatelessWidget {
         return 'indian_map';
 
       default:
-        return title.toLowerCase().replaceAll(' ', '_');
+        return title
+            .toLowerCase()
+            .replaceAll(' ', '_');
     }
   }
 
@@ -1070,25 +1181,31 @@ class SubjectCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       height: 65,
-      margin: const EdgeInsets.only(bottom: 10),
+      margin:
+          const EdgeInsets.only(bottom: 10),
       child: ElevatedButton(
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => SubjectVideosPage(
+              builder: (_) =>
+                  SubjectVideosPage(
                 subjectName: title,
-                firestoreName: firestoreSubjectName,
+                firestoreName:
+                    firestoreSubjectName,
               ),
             ),
           );
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.white,
-          foregroundColor: Colors.black87,
+          foregroundColor:
+              Colors.black87,
           elevation: 1,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(17),
+          shape:
+              RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(17),
           ),
         ),
         child: Row(
@@ -1097,8 +1214,11 @@ class SubjectCard extends StatelessWidget {
               width: 43,
               height: 43,
               decoration: BoxDecoration(
-                color: primaryBlue.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(13),
+                color: primaryBlue.withValues(
+                  alpha: 0.10,
+                ),
+                borderRadius:
+                    BorderRadius.circular(13),
               ),
               child: Icon(
                 icon,
@@ -1111,7 +1231,8 @@ class SubjectCard extends StatelessWidget {
                 title,
                 style: const TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  fontWeight:
+                      FontWeight.w600,
                 ),
               ),
             ),
@@ -1129,7 +1250,35 @@ class SubjectCard extends StatelessWidget {
 // ============================================================
 // SUBJECT VIDEOS PAGE
 //
-// EVERY SUBJECT USES EXACTLY THE SAME PATH:
+// IMPORTANT FIX:
+//
+// Subject ka naam AppBar me nahi dikhega.
+//
+// History:
+//    sirf Back Arrow
+//
+// Biology:
+//    sirf Back Arrow
+//
+// Economics:
+//    sirf Back Arrow
+//
+// Geography:
+//    sirf Back Arrow
+//
+// Polity:
+//    sirf Back Arrow
+//
+// Chemistry:
+//    sirf Back Arrow
+//
+// Physics:
+//    sirf Back Arrow
+//
+// World Map / Indian Map:
+//    sirf Back Arrow
+//
+// Firestore structure same rahega:
 //
 // subjects
 //   └── history
@@ -1140,19 +1289,10 @@ class SubjectCard extends StatelessWidget {
 //   └── biology
 //        └── videos
 //             └── videoDocument
-//
-// subjects
-//   └── economics
-//        └── videos
-//             └── videoDocument
-//
-// etc.
-//
-// Isliye History me jo structure hai,
-// wahi Biology/Economics/etc. me bhi rahega.
 // ============================================================
 
-class SubjectVideosPage extends StatefulWidget {
+class SubjectVideosPage
+    extends StatefulWidget {
   final String subjectName;
   final String firestoreName;
 
@@ -1169,23 +1309,26 @@ class SubjectVideosPage extends StatefulWidget {
 
 class _SubjectVideosPageState
     extends State<SubjectVideosPage> {
+  Future<
+      List<
+          QueryDocumentSnapshot<
+              Map<String, dynamic>>>> loadVideos() async {
+    final snapshot =
+        await FirebaseFirestore.instance
+            .collection('subjects')
+            .doc(widget.firestoreName)
+            .collection('videos')
+            .get();
 
-  Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>>
-      loadVideos() async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('subjects')
-        .doc(widget.firestoreName)
-        .collection('videos')
-        .get();
+    final videos =
+        snapshot.docs.toList();
 
-    final videos = snapshot.docs.toList();
-
-    // Newest video first.
     videos.sort((a, b) {
       final aTime = a.data()['createdAt'];
       final bTime = b.data()['createdAt'];
 
-      if (aTime is Timestamp && bTime is Timestamp) {
+      if (aTime is Timestamp &&
+          bTime is Timestamp) {
         return bTime.compareTo(aTime);
       }
 
@@ -1199,7 +1342,6 @@ class _SubjectVideosPageState
   void initState() {
     super.initState();
 
-    // Subject page ALWAYS portrait.
     SystemChrome.setPreferredOrientations(
       const [
         DeviceOrientation.portraitUp,
@@ -1214,7 +1356,6 @@ class _SubjectVideosPageState
 
   @override
   void dispose() {
-    // Page close hone par orientations restore.
     SystemChrome.setPreferredOrientations(
       const [
         DeviceOrientation.portraitUp,
@@ -1234,18 +1375,24 @@ class _SubjectVideosPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
+      // ======================================================
+      // IMPORTANT:
+      // Yahan subjectName ko title me use NAHI kiya gaya.
+      // Isliye History/Economics/Biology etc. upar nahi dikhenge.
+      // Sirf back arrow rahega.
+      // ======================================================
+
       appBar: AppBar(
+        automaticallyImplyLeading: true,
         leading: const BackButton(),
-        title: Text(
-          widget.subjectName,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-          ),
-        ),
+        title: const SizedBox.shrink(),
       ),
+
       body: FutureBuilder<
-          List<QueryDocumentSnapshot<Map<String, dynamic>>>>(
+          List<
+              QueryDocumentSnapshot<
+                  Map<String, dynamic>>>>(
         future: loadVideos(),
         builder: (context, snapshot) {
           if (snapshot.connectionState ==
@@ -1260,37 +1407,48 @@ class _SubjectVideosPageState
           if (snapshot.hasError) {
             return Center(
               child: Padding(
-                padding: const EdgeInsets.all(25),
+                padding:
+                    const EdgeInsets.all(25),
                 child: Text(
                   'Videos load नहीं हो सके।\n\n'
                   '${snapshot.error}',
-                  textAlign: TextAlign.center,
+                  textAlign:
+                      TextAlign.center,
                 ),
               ),
             );
           }
 
-          final docs = snapshot.data ?? [];
+          final docs =
+              snapshot.data ?? [];
 
           if (docs.isEmpty) {
             return Center(
               child: Padding(
-                padding: const EdgeInsets.all(25),
+                padding:
+                    const EdgeInsets.all(25),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment:
+                      MainAxisAlignment.center,
                   children: [
                     const Icon(
-                      Icons.video_library_outlined,
+                      Icons
+                          .video_library_outlined,
                       size: 75,
                       color: primaryBlue,
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(
+                      height: 20,
+                    ),
                     Text(
                       'अभी ${widget.subjectName} का कोई video उपलब्ध नहीं है',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      textAlign:
+                          TextAlign.center,
+                      style:
+                          const TextStyle(
                         fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                        fontWeight:
+                            FontWeight.bold,
                       ),
                     ),
                   ],
@@ -1299,25 +1457,24 @@ class _SubjectVideosPageState
             );
           }
 
-          // --------------------------------------------------
-          // IMPORTANT FIX:
-          // ListView ke andar player ko fixed height nahi diya.
-          // Har VideoCard apni 16:9 height calculate karega.
-          // --------------------------------------------------
-
           return ListView.builder(
-            physics: const BouncingScrollPhysics(),
+            physics:
+                const BouncingScrollPhysics(),
             keyboardDismissBehavior:
-                ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: const EdgeInsets.fromLTRB(
+                ScrollViewKeyboardDismissBehavior
+                    .onDrag,
+            padding:
+                const EdgeInsets.fromLTRB(
               18,
               14,
               18,
               40,
             ),
             itemCount: docs.length,
-            itemBuilder: (context, index) {
-              final data = docs[index].data();
+            itemBuilder:
+                (context, index) {
+              final data =
+                  docs[index].data();
 
               final title =
                   (data['title'] ??
@@ -1326,20 +1483,24 @@ class _SubjectVideosPageState
                       .toString();
 
               final description =
-                  (data['description'] ?? '').toString();
+                  (data['description'] ??
+                          '')
+                      .toString();
 
-              final videoUrl = getVideoValue(data);
+              final videoUrl =
+                  getVideoValue(data);
 
               final isLive =
                   data['isLive'] == true ||
-                  data['type'] == 'live';
+                      data['type'] == 'live';
 
               return VideoCard(
                 key: ValueKey(
                   '${widget.firestoreName}_${docs[index].id}',
                 ),
                 title: title,
-                description: description,
+                description:
+                    description,
                 videoUrl: videoUrl,
                 isLive: isLive,
               );
@@ -1350,11 +1511,8 @@ class _SubjectVideosPageState
     );
   }
 
-  // ----------------------------------------------------------
-  // VIDEO FIELD
-  // ----------------------------------------------------------
-
-  String getVideoValue(Map<String, dynamic> data) {
+  String getVideoValue(
+      Map<String, dynamic> data) {
     const possibleFields = [
       'videoUrl',
       'videoURL',
@@ -1366,11 +1524,13 @@ class _SubjectVideosPageState
       'youtubeId',
     ];
 
-    for (final field in possibleFields) {
+    for (final field
+        in possibleFields) {
       final value = data[field];
 
       if (value != null) {
-        final text = value.toString().trim();
+        final text =
+            value.toString().trim();
 
         if (text.isNotEmpty) {
           return text;
@@ -1386,7 +1546,8 @@ class _SubjectVideosPageState
 // VIDEO CARD
 // ============================================================
 
-class VideoCard extends StatefulWidget {
+class VideoCard
+    extends StatefulWidget {
   final String title;
   final String description;
   final String videoUrl;
@@ -1401,10 +1562,12 @@ class VideoCard extends StatefulWidget {
   });
 
   @override
-  State<VideoCard> createState() => _VideoCardState();
+  State<VideoCard> createState() =>
+      _VideoCardState();
 }
 
-class _VideoCardState extends State<VideoCard> {
+class _VideoCardState
+    extends State<VideoCard> {
   YoutubePlayerController? controller;
 
   String? videoId;
@@ -1437,7 +1600,8 @@ class _VideoCardState extends State<VideoCard> {
   // YOUTUBE ID PARSER
   // ==========================================================
 
-  String? extractYoutubeId(String input) {
+  String? extractYoutubeId(
+      String input) {
     String value = input.trim();
 
     if (value.isEmpty) {
@@ -1449,7 +1613,6 @@ class _VideoCardState extends State<VideoCard> {
         .replaceAll("'", '')
         .trim();
 
-    // Direct 11-character YouTube ID.
     final directId = RegExp(
       r'^[A-Za-z0-9_-]{11}$',
     );
@@ -1460,7 +1623,8 @@ class _VideoCardState extends State<VideoCard> {
 
     Uri? uri = Uri.tryParse(value);
 
-    if (uri == null || uri.host.isEmpty) {
+    if (uri == null ||
+        uri.host.isEmpty) {
       uri = Uri.tryParse(
         'https://$value',
       );
@@ -1470,48 +1634,57 @@ class _VideoCardState extends State<VideoCard> {
       return null;
     }
 
-    final host = uri.host.toLowerCase();
+    final host =
+        uri.host.toLowerCase();
 
-    // youtube.com
     if (host == 'youtube.com' ||
         host == 'www.youtube.com' ||
         host == 'm.youtube.com' ||
         host == 'music.youtube.com') {
-
-      final queryId = uri.queryParameters['v'];
+      final queryId =
+          uri.queryParameters['v'];
 
       if (queryId != null &&
           directId.hasMatch(queryId)) {
         return queryId;
       }
 
-      // /shorts/VIDEO_ID
-      if (uri.pathSegments.isNotEmpty &&
-          uri.pathSegments.first == 'shorts' &&
-          uri.pathSegments.length >= 2) {
-        final id = uri.pathSegments[1];
+      if (uri.pathSegments
+              .isNotEmpty &&
+          uri.pathSegments.first ==
+              'shorts' &&
+          uri.pathSegments.length >=
+              2) {
+        final id =
+            uri.pathSegments[1];
 
         if (directId.hasMatch(id)) {
           return id;
         }
       }
 
-      // /embed/VIDEO_ID
-      if (uri.pathSegments.isNotEmpty &&
-          uri.pathSegments.first == 'embed' &&
-          uri.pathSegments.length >= 2) {
-        final id = uri.pathSegments[1];
+      if (uri.pathSegments
+              .isNotEmpty &&
+          uri.pathSegments.first ==
+              'embed' &&
+          uri.pathSegments.length >=
+              2) {
+        final id =
+            uri.pathSegments[1];
 
         if (directId.hasMatch(id)) {
           return id;
         }
       }
 
-      // /live/VIDEO_ID
-      if (uri.pathSegments.isNotEmpty &&
-          uri.pathSegments.first == 'live' &&
-          uri.pathSegments.length >= 2) {
-        final id = uri.pathSegments[1];
+      if (uri.pathSegments
+              .isNotEmpty &&
+          uri.pathSegments.first ==
+              'live' &&
+          uri.pathSegments.length >=
+              2) {
+        final id =
+            uri.pathSegments[1];
 
         if (directId.hasMatch(id)) {
           return id;
@@ -1519,11 +1692,12 @@ class _VideoCardState extends State<VideoCard> {
       }
     }
 
-    // youtu.be/VIDEO_ID
     if (host == 'youtu.be' ||
         host == 'www.youtu.be') {
-      if (uri.pathSegments.isNotEmpty) {
-        final id = uri.pathSegments.first;
+      if (uri.pathSegments
+          .isNotEmpty) {
+        final id =
+            uri.pathSegments.first;
 
         if (directId.hasMatch(id)) {
           return id;
@@ -1531,14 +1705,14 @@ class _VideoCardState extends State<VideoCard> {
       }
     }
 
-    // Final fallback.
     final fallback = RegExp(
       r'(?:v=|youtu\.be/|/shorts/|/embed/|/live/)'
       r'([A-Za-z0-9_-]{11})',
       caseSensitive: false,
     );
 
-    final match = fallback.firstMatch(value);
+    final match =
+        fallback.firstMatch(value);
 
     if (match != null) {
       return match.group(1);
@@ -1552,7 +1726,8 @@ class _VideoCardState extends State<VideoCard> {
   // ==========================================================
 
   void initializePlayer() {
-    final input = widget.videoUrl.trim();
+    final input =
+        widget.videoUrl.trim();
 
     if (input.isEmpty) {
       errorMessage =
@@ -1560,7 +1735,8 @@ class _VideoCardState extends State<VideoCard> {
       return;
     }
 
-    final id = extractYoutubeId(input);
+    final id =
+        extractYoutubeId(input);
 
     if (id == null || id.isEmpty) {
       errorMessage =
@@ -1570,7 +1746,8 @@ class _VideoCardState extends State<VideoCard> {
 
     videoId = id;
 
-    controller = YoutubePlayerController(
+    controller =
+        YoutubePlayerController(
       initialVideoId: id,
       flags: YoutubePlayerFlags(
         autoPlay: false,
@@ -1581,17 +1758,18 @@ class _VideoCardState extends State<VideoCard> {
         loop: false,
         forceHD: false,
         isLive: widget.isLive,
-
-        // Android scrolling / PlatformView rendering fix.
         useHybridComposition: true,
       ),
     );
 
-    controller!.addListener(playerListener);
+    controller!.addListener(
+      playerListener,
+    );
   }
 
   String get linkPreview {
-    if (widget.videoUrl.length <= 100) {
+    if (widget.videoUrl.length <=
+        100) {
       return widget.videoUrl;
     }
 
@@ -1603,16 +1781,19 @@ class _VideoCardState extends State<VideoCard> {
   // ==========================================================
 
   void playerListener() {
-    if (!mounted || controller == null) {
+    if (!mounted ||
+        controller == null) {
       return;
     }
 
     final fullscreen =
         controller!.value.isFullScreen;
 
-    if (fullscreen != isFullscreen) {
+    if (fullscreen !=
+        isFullscreen) {
       setState(() {
-        isFullscreen = fullscreen;
+        isFullscreen =
+            fullscreen;
       });
     }
   }
@@ -1623,7 +1804,10 @@ class _VideoCardState extends State<VideoCard> {
 
   @override
   void dispose() {
-    controller?.removeListener(playerListener);
+    controller?.removeListener(
+      playerListener,
+    );
+
     controller?.dispose();
 
     super.dispose();
@@ -1633,21 +1817,29 @@ class _VideoCardState extends State<VideoCard> {
   // ENTER FULLSCREEN
   // ==========================================================
 
-  Future<void> enterFullscreen() async {
-    if (controller == null) return;
+  Future<void> enterFullscreen()
+      async {
+    if (controller == null) {
+      return;
+    }
 
-    await SystemChrome.setEnabledSystemUIMode(
+    await SystemChrome
+        .setEnabledSystemUIMode(
       SystemUiMode.immersiveSticky,
     );
 
-    await SystemChrome.setPreferredOrientations(
+    await SystemChrome
+        .setPreferredOrientations(
       const [
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
+        DeviceOrientation
+            .landscapeLeft,
+        DeviceOrientation
+            .landscapeRight,
       ],
     );
 
-    controller!.toggleFullScreenMode();
+    controller!
+        .toggleFullScreenMode();
 
     if (mounted) {
       setState(() {
@@ -1660,19 +1852,27 @@ class _VideoCardState extends State<VideoCard> {
   // EXIT FULLSCREEN
   // ==========================================================
 
-  Future<void> exitFullscreen() async {
-    if (controller == null) return;
+  Future<void> exitFullscreen()
+      async {
+    if (controller == null) {
+      return;
+    }
 
-    controller!.toggleFullScreenMode();
+    controller!
+        .toggleFullScreenMode();
 
-    await SystemChrome.setPreferredOrientations(
+    await SystemChrome
+        .setPreferredOrientations(
       const [
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
+        DeviceOrientation
+            .portraitUp,
+        DeviceOrientation
+            .portraitDown,
       ],
     );
 
-    await SystemChrome.setEnabledSystemUIMode(
+    await SystemChrome
+        .setEnabledSystemUIMode(
       SystemUiMode.edgeToEdge,
     );
 
@@ -1683,7 +1883,8 @@ class _VideoCardState extends State<VideoCard> {
     }
   }
 
-  Future<void> toggleFullscreen() async {
+  Future<void> toggleFullscreen()
+      async {
     if (isFullscreen) {
       await exitFullscreen();
     } else {
@@ -1695,10 +1896,14 @@ class _VideoCardState extends State<VideoCard> {
   // SPEED
   // ==========================================================
 
-  void changeSpeed(double speed) {
-    if (controller == null) return;
+  void changeSpeed(
+      double speed) {
+    if (controller == null) {
+      return;
+    }
 
-    controller!.setPlaybackRate(speed);
+    controller!
+        .setPlaybackRate(speed);
 
     if (mounted) {
       setState(() {
@@ -1714,41 +1919,56 @@ class _VideoCardState extends State<VideoCard> {
       builder: (context) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(
+            padding:
+                const EdgeInsets.fromLTRB(
               20,
               10,
               20,
               25,
             ),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize:
+                  MainAxisSize.min,
               children: [
                 const Text(
                   'Playback Speed',
                   style: TextStyle(
                     fontSize: 21,
-                    fontWeight: FontWeight.bold,
+                    fontWeight:
+                        FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 15),
+                const SizedBox(
+                  height: 15,
+                ),
                 ...speeds.map(
                   (speed) => ListTile(
                     leading: Icon(
-                      speed == playbackSpeed
-                          ? Icons.radio_button_checked
-                          : Icons.radio_button_off,
-                      color: primaryBlue,
+                      speed ==
+                              playbackSpeed
+                          ? Icons
+                              .radio_button_checked
+                          : Icons
+                              .radio_button_off,
+                      color:
+                          primaryBlue,
                     ),
                     title: Text(
                       '${speed.toStringAsFixed(
-                        speed == speed.roundToDouble()
+                        speed ==
+                                speed
+                                    .roundToDouble()
                             ? 0
                             : 2,
                       )}x',
                     ),
                     onTap: () {
-                      changeSpeed(speed);
-                      Navigator.pop(context);
+                      changeSpeed(
+                        speed,
+                      );
+                      Navigator.pop(
+                        context,
+                      );
                     },
                   ),
                 ),
@@ -1765,7 +1985,9 @@ class _VideoCardState extends State<VideoCard> {
   // ==========================================================
 
   void toggleMute() {
-    if (controller == null) return;
+    if (controller == null) {
+      return;
+    }
 
     if (muted) {
       controller!.unMute();
@@ -1791,14 +2013,16 @@ class _VideoCardState extends State<VideoCard> {
       builder: (context) {
         return const SafeArea(
           child: Padding(
-            padding: EdgeInsets.fromLTRB(
+            padding:
+                EdgeInsets.fromLTRB(
               24,
               15,
               24,
               30,
             ),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize:
+                  MainAxisSize.min,
               children: [
                 Icon(
                   Icons.high_quality,
@@ -1810,13 +2034,15 @@ class _VideoCardState extends State<VideoCard> {
                   'Video Quality',
                   style: TextStyle(
                     fontSize: 22,
-                    fontWeight: FontWeight.bold,
+                    fontWeight:
+                        FontWeight.bold,
                   ),
                 ),
                 SizedBox(height: 12),
                 Text(
                   'YouTube video की quality internet speed और YouTube player के अनुसार automatically adjust होती है।',
-                  textAlign: TextAlign.center,
+                  textAlign:
+                      TextAlign.center,
                 ),
               ],
             ),
@@ -1830,8 +2056,11 @@ class _VideoCardState extends State<VideoCard> {
   // OPEN YOUTUBE
   // ==========================================================
 
-  Future<void> openYoutube() async {
-    if (videoId == null) return;
+  Future<void> openYoutube()
+      async {
+    if (videoId == null) {
+      return;
+    }
 
     final uri = Uri.parse(
       'https://www.youtube.com/watch?v=$videoId',
@@ -1840,11 +2069,14 @@ class _VideoCardState extends State<VideoCard> {
     try {
       await launchUrl(
         uri,
-        mode: LaunchMode.externalApplication,
+        mode:
+            LaunchMode.externalApplication,
       );
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(
           const SnackBar(
             content: Text(
               'YouTube खोलने में समस्या हुई',
@@ -1857,49 +2089,56 @@ class _VideoCardState extends State<VideoCard> {
 
   // ==========================================================
   // VIDEO PLAYER
-  //
-  // IMPORTANT:
-  // Fixed height hata diya gaya hai.
-  //
-  // AspectRatio 16:9:
-  // width jitni hogi, height automatically calculate hogi.
-  //
-  // Isse:
-  // - bottom crop nahi hoga
-  // - top crop nahi hoga
-  // - different phones par size correct rahega
   // ==========================================================
 
   Widget buildPlayer() {
-    if (controller == null || videoId == null) {
+    if (controller == null ||
+        videoId == null) {
       return AspectRatio(
         aspectRatio: 16 / 9,
         child: Container(
           width: double.infinity,
           color: Colors.black12,
-          alignment: Alignment.center,
+          alignment:
+              Alignment.center,
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding:
+                const EdgeInsets.all(
+              20,
+            ),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment:
+                  MainAxisAlignment
+                      .center,
               children: [
                 const Icon(
                   Icons.error_outline,
                   size: 50,
                   color: Colors.red,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(
+                  height: 10,
+                ),
                 Text(
                   errorMessage ??
                       'Video load नहीं हुआ',
-                  textAlign: TextAlign.center,
+                  textAlign:
+                      TextAlign.center,
                 ),
-                const SizedBox(height: 14),
-                if (widget.videoUrl.trim().isNotEmpty)
+                const SizedBox(
+                  height: 14,
+                ),
+                if (widget.videoUrl
+                    .trim()
+                    .isNotEmpty)
                   OutlinedButton.icon(
-                    onPressed: openYoutube,
-                    icon: const Icon(Icons.open_in_new),
-                    label: const Text(
+                    onPressed:
+                        openYoutube,
+                    icon: const Icon(
+                      Icons.open_in_new,
+                    ),
+                    label:
+                        const Text(
                       'YouTube पर खोलें',
                     ),
                   ),
@@ -1911,45 +2150,66 @@ class _VideoCardState extends State<VideoCard> {
     }
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius:
+          BorderRadius.circular(18),
       child: AspectRatio(
         aspectRatio: 16 / 9,
         child: YoutubePlayer(
           controller: controller!,
           aspectRatio: 16 / 9,
-          showVideoProgressIndicator: !widget.isLive,
-          progressIndicatorColor: primaryBlue,
-          progressColors: const ProgressBarColors(
-            playedColor: primaryBlue,
-            handleColor: primaryBlue,
-            bufferedColor: Colors.grey,
-            backgroundColor: Colors.white30,
+          showVideoProgressIndicator:
+              !widget.isLive,
+          progressIndicatorColor:
+              primaryBlue,
+          progressColors:
+              const ProgressBarColors(
+            playedColor:
+                primaryBlue,
+            handleColor:
+                primaryBlue,
+            bufferedColor:
+                Colors.grey,
+            backgroundColor:
+                Colors.white30,
           ),
           topActions: [
             if (widget.isLive)
               Container(
-                padding: const EdgeInsets.symmetric(
+                padding:
+                    const EdgeInsets
+                        .symmetric(
                   horizontal: 9,
                   vertical: 5,
                 ),
-                decoration: BoxDecoration(
+                decoration:
+                    BoxDecoration(
                   color: Colors.red,
-                  borderRadius: BorderRadius.circular(5),
+                  borderRadius:
+                      BorderRadius
+                          .circular(5),
                 ),
                 child: const Row(
-                  mainAxisSize: MainAxisSize.min,
+                  mainAxisSize:
+                      MainAxisSize.min,
                   children: [
                     Icon(
                       Icons.circle,
                       size: 8,
-                      color: Colors.white,
+                      color:
+                          Colors.white,
                     ),
-                    SizedBox(width: 5),
+                    SizedBox(
+                      width: 5,
+                    ),
                     Text(
                       'LIVE',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                      style:
+                          TextStyle(
+                        color:
+                            Colors.white,
+                        fontWeight:
+                            FontWeight
+                                .bold,
                         fontSize: 12,
                       ),
                     ),
@@ -1958,12 +2218,15 @@ class _VideoCardState extends State<VideoCard> {
               ),
             const Spacer(),
             GestureDetector(
-              onTap: showQualityInfo,
+              onTap:
+                  showQualityInfo,
               child: const Padding(
-                padding: EdgeInsets.all(8),
+                padding:
+                    EdgeInsets.all(8),
                 child: Icon(
                   Icons.high_quality,
-                  color: Colors.white,
+                  color:
+                      Colors.white,
                 ),
               ),
             ),
@@ -1972,28 +2235,41 @@ class _VideoCardState extends State<VideoCard> {
             const PlayPauseButton(),
 
             if (!widget.isLive) ...[
-              const SizedBox(width: 8),
+              const SizedBox(
+                width: 8,
+              ),
               const CurrentPosition(),
-              const SizedBox(width: 8),
+              const SizedBox(
+                width: 8,
+              ),
               const ProgressBar(
                 isExpanded: true,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(
+                width: 8,
+              ),
               const RemainingDuration(),
             ] else ...[
-              const SizedBox(width: 10),
+              const SizedBox(
+                width: 10,
+              ),
               const Expanded(
                 child: Text(
                   'LIVE',
                   style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                    color:
+                        Colors.white,
+                    fontWeight:
+                        FontWeight
+                            .bold,
                   ),
                 ),
               ),
             ],
 
-            const SizedBox(width: 8),
+            const SizedBox(
+              width: 8,
+            ),
 
             GestureDetector(
               onTap: toggleMute,
@@ -2001,55 +2277,78 @@ class _VideoCardState extends State<VideoCard> {
                 muted
                     ? Icons.volume_off
                     : Icons.volume_up,
-                color: Colors.white,
+                color:
+                    Colors.white,
               ),
             ),
 
-            const SizedBox(width: 10),
+            const SizedBox(
+              width: 10,
+            ),
 
             GestureDetector(
-              onTap: showSpeedMenu,
+              onTap:
+                  showSpeedMenu,
               child: Container(
-                padding: const EdgeInsets.symmetric(
+                padding:
+                    const EdgeInsets
+                        .symmetric(
                   horizontal: 7,
                   vertical: 4,
                 ),
-                decoration: BoxDecoration(
+                decoration:
+                    BoxDecoration(
                   border: Border.all(
-                    color: Colors.white,
+                    color:
+                        Colors.white,
                   ),
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius:
+                      BorderRadius
+                          .circular(4),
                 ),
                 child: Text(
                   '${playbackSpeed}x',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style:
+                      const TextStyle(
+                    color:
+                        Colors.white,
                     fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                    fontWeight:
+                        FontWeight
+                            .bold,
                   ),
                 ),
               ),
             ),
 
-            const SizedBox(width: 10),
+            const SizedBox(
+              width: 10,
+            ),
 
             GestureDetector(
-              onTap: showQualityInfo,
+              onTap:
+                  showQualityInfo,
               child: const Icon(
                 Icons.settings,
-                color: Colors.white,
+                color:
+                    Colors.white,
               ),
             ),
 
-            const SizedBox(width: 8),
+            const SizedBox(
+              width: 8,
+            ),
 
             GestureDetector(
-              onTap: toggleFullscreen,
+              onTap:
+                  toggleFullscreen,
               child: Icon(
                 isFullscreen
-                    ? Icons.fullscreen_exit
+                    ? Icons
+                        .fullscreen_exit
                     : Icons.fullscreen,
-                color: Colors.white,
+                color:
+                    Colors.white,
               ),
             ),
           ],
@@ -2065,32 +2364,34 @@ class _VideoCardState extends State<VideoCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(
+      margin:
+          const EdgeInsets.only(
         bottom: 20,
       ),
       elevation: 2,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
+      clipBehavior:
+          Clip.antiAlias,
+      shape:
+          RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.circular(18),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
         children: [
-          // ----------------------------------------------------
-          // VIDEO
-          // ----------------------------------------------------
           buildPlayer(),
 
-          // ----------------------------------------------------
-          // LIVE LABEL
-          // ----------------------------------------------------
           if (widget.isLive)
             Container(
               width: double.infinity,
-              color: Colors.red.withValues(
+              color:
+                  Colors.red.withValues(
                 alpha: 0.08,
               ),
-              padding: const EdgeInsets.symmetric(
+              padding:
+                  const EdgeInsets
+                      .symmetric(
                 horizontal: 16,
                 vertical: 9,
               ),
@@ -2099,25 +2400,31 @@ class _VideoCardState extends State<VideoCard> {
                   Icon(
                     Icons.circle,
                     size: 9,
-                    color: Colors.red,
+                    color:
+                        Colors.red,
                   ),
-                  SizedBox(width: 7),
+                  SizedBox(
+                    width: 7,
+                  ),
                   Text(
                     'LIVE CLASS',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
+                    style:
+                        TextStyle(
+                      color:
+                          Colors.red,
+                      fontWeight:
+                          FontWeight
+                              .bold,
                     ),
                   ),
                 ],
               ),
             ),
 
-          // ----------------------------------------------------
-          // TITLE + DESCRIPTION
-          // ----------------------------------------------------
           Padding(
-            padding: const EdgeInsets.fromLTRB(
+            padding:
+                const EdgeInsets
+                    .fromLTRB(
               16,
               15,
               16,
@@ -2125,64 +2432,91 @@ class _VideoCardState extends State<VideoCard> {
             ),
             child: Column(
               crossAxisAlignment:
-                  CrossAxisAlignment.start,
+                  CrossAxisAlignment
+                      .start,
               children: [
                 Text(
                   widget.title,
-                  style: const TextStyle(
+                  style:
+                      const TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontWeight:
+                        FontWeight
+                            .bold,
                   ),
                 ),
 
-                if (widget.description.isNotEmpty) ...[
-                  const SizedBox(height: 9),
+                if (widget
+                    .description
+                    .isNotEmpty) ...[
+                  const SizedBox(
+                    height: 9,
+                  ),
                   Text(
                     widget.description,
-                    style: const TextStyle(
-                      color: Colors.grey,
+                    style:
+                        const TextStyle(
+                      color:
+                          Colors.grey,
                     ),
                   ),
                 ],
 
-                const SizedBox(height: 12),
+                const SizedBox(
+                  height: 12,
+                ),
 
                 Row(
                   children: [
                     if (!widget.isLive)
                       const Chip(
-                        avatar: Icon(
-                          Icons.video_library,
+                        avatar:
+                            Icon(
+                          Icons
+                              .video_library,
                           size: 17,
                         ),
-                        label: Text('Recorded'),
+                        label:
+                            Text(
+                          'Recorded',
+                        ),
                       )
                     else
                       const Chip(
-                        avatar: Icon(
+                        avatar:
+                            Icon(
                           Icons.live_tv,
                           size: 17,
                         ),
-                        label: Text('Live'),
+                        label:
+                            Text(
+                          'Live',
+                        ),
                       ),
 
                     const Spacer(),
 
                     TextButton.icon(
-                      onPressed: showSpeedMenu,
-                      icon: const Icon(
+                      onPressed:
+                          showSpeedMenu,
+                      icon:
+                          const Icon(
                         Icons.speed,
                         size: 19,
                       ),
-                      label: Text(
+                      label:
+                          Text(
                         '${playbackSpeed}x',
                       ),
                     ),
 
                     IconButton(
-                      onPressed: toggleFullscreen,
-                      tooltip: 'Fullscreen',
-                      icon: const Icon(
+                      onPressed:
+                          toggleFullscreen,
+                      tooltip:
+                          'Fullscreen',
+                      icon:
+                          const Icon(
                         Icons.fullscreen,
                       ),
                     ),
@@ -2201,7 +2535,8 @@ class _VideoCardState extends State<VideoCard> {
 // PRACTICE
 // ============================================================
 
-class PracticePage extends StatelessWidget {
+class PracticePage
+    extends StatelessWidget {
   const PracticePage({super.key});
 
   @override
@@ -2219,7 +2554,8 @@ class PracticePage extends StatelessWidget {
 // NOTES
 // ============================================================
 
-class NotesPage extends StatelessWidget {
+class NotesPage
+    extends StatelessWidget {
   const NotesPage({super.key});
 
   @override
@@ -2237,7 +2573,8 @@ class NotesPage extends StatelessWidget {
 // SIMPLE PAGE
 // ============================================================
 
-class SimplePage extends StatelessWidget {
+class SimplePage
+    extends StatelessWidget {
   final String title;
   final String message;
   final IconData icon;
@@ -2256,13 +2593,15 @@ class SimplePage extends StatelessWidget {
         title: Text(
           title,
           style: const TextStyle(
-            fontWeight: FontWeight.bold,
+            fontWeight:
+                FontWeight.bold,
           ),
         ),
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(25),
+          padding:
+              const EdgeInsets.all(25),
           child: Column(
             mainAxisAlignment:
                 MainAxisAlignment.center,
@@ -2272,11 +2611,15 @@ class SimplePage extends StatelessWidget {
                 size: 75,
                 color: primaryBlue,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(
+                height: 20,
+              ),
               Text(
                 message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
+                textAlign:
+                    TextAlign.center,
+                style:
+                    const TextStyle(
                   fontSize: 18,
                   color: Colors.grey,
                 ),
@@ -2293,7 +2636,8 @@ class SimplePage extends StatelessWidget {
 // PROFILE
 // ============================================================
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen
+    extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
@@ -2303,7 +2647,8 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState
     extends State<ProfileScreen> {
-  final nameController = TextEditingController();
+  final nameController =
+      TextEditingController();
 
   bool saving = false;
 
@@ -2312,7 +2657,10 @@ class _ProfileScreenState
     super.initState();
 
     nameController.text =
-        FirebaseAuth.instance.currentUser?.displayName ?? '';
+        FirebaseAuth.instance
+                .currentUser
+                ?.displayName ??
+            '';
   }
 
   @override
@@ -2322,10 +2670,13 @@ class _ProfileScreenState
   }
 
   Future<void> changeName() async {
-    final name = nameController.text.trim();
+    final name =
+        nameController.text.trim();
 
     if (name.isEmpty) {
-      showMessage('Name खाली नहीं हो सकता');
+      showMessage(
+        'Name खाली नहीं हो सकता',
+      );
       return;
     }
 
@@ -2335,16 +2686,22 @@ class _ProfileScreenState
 
     try {
       final user =
-          FirebaseAuth.instance.currentUser;
+          FirebaseAuth.instance
+              .currentUser;
 
       if (user == null) {
-        showMessage('User login नहीं है');
+        showMessage(
+          'User login नहीं है',
+        );
         return;
       }
 
-      await user.updateDisplayName(name);
+      await user.updateDisplayName(
+        name,
+      );
 
-      await FirebaseFirestore.instance
+      await FirebaseFirestore
+          .instance
           .collection('users')
           .doc(user.uid)
           .set(
@@ -2352,9 +2709,12 @@ class _ProfileScreenState
           'name': name,
           'email': user.email,
           'updatedAt':
-              FieldValue.serverTimestamp(),
+              FieldValue
+                  .serverTimestamp(),
         },
-        SetOptions(merge: true),
+        SetOptions(
+          merge: true,
+        ),
       );
 
       await user.reload();
@@ -2378,13 +2738,15 @@ class _ProfileScreenState
   }
 
   Future<void> logout() async {
-    await FirebaseAuth.instance.signOut();
+    await FirebaseAuth.instance
+        .signOut();
   }
 
   void showMessage(String message) {
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of(context)
+        .showSnackBar(
       SnackBar(
         content: Text(message),
       ),
@@ -2394,93 +2756,125 @@ class _ProfileScreenState
   @override
   Widget build(BuildContext context) {
     final user =
-        FirebaseAuth.instance.currentUser;
+        FirebaseAuth.instance
+            .currentUser;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           'Profile',
           style: TextStyle(
-            fontWeight: FontWeight.bold,
+            fontWeight:
+                FontWeight.bold,
           ),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(25),
+        padding:
+            const EdgeInsets.all(25),
         child: Column(
           children: [
             const CircleAvatar(
               radius: 52,
-              backgroundColor: primaryBlue,
+              backgroundColor:
+                  primaryBlue,
               child: Icon(
                 Icons.person,
                 size: 55,
                 color: Colors.white,
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(
+              height: 18,
+            ),
             const Text(
               'Student Profile',
               style: TextStyle(
                 fontSize: 27,
-                fontWeight: FontWeight.bold,
+                fontWeight:
+                    FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 28),
-            AppTextField(
-              controller: nameController,
-              hint: 'Student Name',
-              icon: Icons.person_outline,
-              textCapitalization:
-                  TextCapitalization.words,
+            const SizedBox(
+              height: 28,
             ),
-            const SizedBox(height: 12),
+            AppTextField(
+              controller:
+                  nameController,
+              hint: 'Student Name',
+              icon:
+                  Icons.person_outline,
+              textCapitalization:
+                  TextCapitalization
+                      .words,
+            ),
+            const SizedBox(
+              height: 12,
+            ),
             Text(
               user?.email ?? '',
-              style: const TextStyle(
+              style:
+                  const TextStyle(
                 color: Colors.grey,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(
+              height: 20,
+            ),
             SizedBox(
               width: double.infinity,
               height: 55,
               child: ElevatedButton(
                 onPressed:
-                    saving ? null : changeName,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryBlue,
-                  foregroundColor: Colors.white,
+                    saving
+                        ? null
+                        : changeName,
+                style:
+                    ElevatedButton
+                        .styleFrom(
+                  backgroundColor:
+                      primaryBlue,
+                  foregroundColor:
+                      Colors.white,
                 ),
                 child: saving
                     ? const CircularProgressIndicator(
-                        color: Colors.white,
+                        color:
+                            Colors.white,
                       )
                     : const Text(
                         'CHANGE NAME',
                       ),
               ),
             ),
-            const SizedBox(height: 35),
+            const SizedBox(
+              height: 35,
+            ),
             const Align(
-              alignment: Alignment.centerLeft,
+              alignment:
+                  Alignment.centerLeft,
               child: Text(
                 'Admin Social Media',
                 style: TextStyle(
                   fontSize: 21,
-                  fontWeight: FontWeight.bold,
+                  fontWeight:
+                      FontWeight.bold,
                 ),
               ),
             ),
-            const SizedBox(height: 15),
+            const SizedBox(
+              height: 15,
+            ),
             SocialButton(
-              icon: Icons.play_circle_fill,
+              icon:
+                  Icons.play_circle_fill,
               title: 'YouTube',
               url:
                   'https://youtube.com/@rceditor999',
             ),
             SocialButton(
-              icon: Icons.camera_alt,
+              icon:
+                  Icons.camera_alt,
               title: 'Instagram',
               url:
                   'https://www.instagram.com/rceditor999/',
@@ -2491,11 +2885,14 @@ class _ProfileScreenState
               url:
                   'https://t.me/RCEDITOR999',
             ),
-            const SizedBox(height: 25),
+            const SizedBox(
+              height: 25,
+            ),
             SizedBox(
               width: double.infinity,
               height: 55,
-              child: OutlinedButton.icon(
+              child:
+                  OutlinedButton.icon(
                 onPressed: logout,
                 icon: const Icon(
                   Icons.logout,
@@ -2503,7 +2900,8 @@ class _ProfileScreenState
                 label: const Text(
                   'LOGOUT',
                   style: TextStyle(
-                    fontWeight: FontWeight.bold,
+                    fontWeight:
+                        FontWeight.bold,
                   ),
                 ),
               ),
@@ -2519,7 +2917,8 @@ class _ProfileScreenState
 // SOCIAL BUTTON
 // ============================================================
 
-class SocialButton extends StatelessWidget {
+class SocialButton
+    extends StatelessWidget {
   final IconData icon;
   final String title;
   final String url;
@@ -2534,7 +2933,8 @@ class SocialButton extends StatelessWidget {
   Future<void> openLink(
     BuildContext context,
   ) async {
-    final uri = Uri.tryParse(url);
+    final uri =
+        Uri.tryParse(url);
 
     if (uri == null ||
         !uri.hasScheme ||
@@ -2548,12 +2948,16 @@ class SocialButton extends StatelessWidget {
     }
 
     try {
-      final opened = await launchUrl(
+      final opened =
+          await launchUrl(
         uri,
-        mode: LaunchMode.externalApplication,
+        mode:
+            LaunchMode
+                .externalApplication,
       );
 
-      if (!opened && context.mounted) {
+      if (!opened &&
+          context.mounted) {
         showMessage(
           context,
           '$title खोलने में समस्या हुई',
@@ -2573,7 +2977,8 @@ class SocialButton extends StatelessWidget {
     BuildContext context,
     String message,
   ) {
-    ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of(context)
+        .showSnackBar(
       SnackBar(
         content: Text(message),
       ),
@@ -2584,17 +2989,22 @@ class SocialButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(
+      margin:
+          const EdgeInsets.only(
         bottom: 10,
       ),
       child: Material(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius:
+            BorderRadius.circular(16),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () => openLink(context),
+          borderRadius:
+              BorderRadius.circular(16),
+          onTap: () =>
+              openLink(context),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding:
+                const EdgeInsets.all(16),
             child: Row(
               children: [
                 Icon(
@@ -2602,13 +3012,17 @@ class SocialButton extends StatelessWidget {
                   size: 28,
                   color: primaryBlue,
                 ),
-                const SizedBox(width: 15),
+                const SizedBox(
+                  width: 15,
+                ),
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(
+                    style:
+                        const TextStyle(
                       fontSize: 17,
-                      fontWeight: FontWeight.bold,
+                      fontWeight:
+                          FontWeight.bold,
                     ),
                   ),
                 ),
@@ -2628,7 +3042,8 @@ class SocialButton extends StatelessWidget {
 // GROUP TITLE
 // ============================================================
 
-class GroupTitle extends StatelessWidget {
+class GroupTitle
+    extends StatelessWidget {
   final IconData icon;
   final String title;
 
@@ -2641,7 +3056,8 @@ class GroupTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(
+      padding:
+          const EdgeInsets.only(
         left: 4,
         bottom: 10,
       ),
@@ -2652,14 +3068,19 @@ class GroupTitle extends StatelessWidget {
             color: primaryBlue,
             size: 24,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(
+            width: 8,
+          ),
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
+              style:
+                  const TextStyle(
                 fontSize: 19,
-                fontWeight: FontWeight.bold,
-                color: primaryBlue,
+                fontWeight:
+                    FontWeight.bold,
+                color:
+                    primaryBlue,
               ),
             ),
           ),
@@ -2673,14 +3094,17 @@ class GroupTitle extends StatelessWidget {
 // TEXT FIELD
 // ============================================================
 
-class AppTextField extends StatelessWidget {
-  final TextEditingController controller;
+class AppTextField
+    extends StatelessWidget {
+  final TextEditingController
+      controller;
   final String hint;
   final IconData icon;
   final bool obscureText;
   final Widget? suffix;
   final TextInputType? keyboardType;
-  final TextCapitalization textCapitalization;
+  final TextCapitalization
+      textCapitalization;
 
   const AppTextField({
     super.key,
@@ -2700,32 +3124,53 @@ class AppTextField extends StatelessWidget {
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
-      textCapitalization: textCapitalization,
-      decoration: InputDecoration(
+      textCapitalization:
+          textCapitalization,
+      decoration:
+          InputDecoration(
         hintText: hint,
-        prefixIcon: Icon(icon),
+        prefixIcon:
+            Icon(icon),
         suffixIcon: suffix,
         filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide.none,
+        fillColor:
+            Colors.white,
+        border:
+            OutlineInputBorder(
+          borderRadius:
+              BorderRadius.circular(
+            18,
+          ),
+          borderSide:
+              BorderSide.none,
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide(
-            color: Colors.grey.shade300,
+        enabledBorder:
+            OutlineInputBorder(
+          borderRadius:
+              BorderRadius.circular(
+            18,
+          ),
+          borderSide:
+              BorderSide(
+            color:
+                Colors.grey.shade300,
           ),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(
+        focusedBorder:
+            OutlineInputBorder(
+          borderRadius:
+              BorderRadius.circular(
+            18,
+          ),
+          borderSide:
+              const BorderSide(
             color: primaryBlue,
             width: 2,
           ),
         ),
         contentPadding:
-            const EdgeInsets.symmetric(
+            const EdgeInsets
+                .symmetric(
           vertical: 18,
           horizontal: 18,
         ),
