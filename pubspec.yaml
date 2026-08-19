@@ -14,7 +14,7 @@ dependencies:
   # ----------------------------------------------------------
   # FIREBASE
   # ----------------------------------------------------------
-  firebase_core: ^4.12.1
+  firebase_core: ^4.13.0
   firebase_auth: ^6.5.6
   cloud_firestore: ^6.7.1
 
@@ -22,13 +22,12 @@ dependencies:
   # YOUTUBE VIDEO PLAYER
   # Recorded + Live + Speed + Fullscreen
   # ----------------------------------------------------------
-  youtube_player_flutter: ^9.1.3
+  youtube_player_flutter: 9.1.3
 
   # ----------------------------------------------------------
-  # ANDROID V1 EMBEDDING FIX
-  # youtube_player_flutter uses this WebView package
+  # YOUTUBE WEBVIEW / ANDROID V1 FIX
   # ----------------------------------------------------------
-  flutter_inappwebview: ^6.1.5
+  flutter_inappwebview: 6.1.5
 
   # ----------------------------------------------------------
   # OPEN YOUTUBE / INSTAGRAM / TELEGRAM LINKS
