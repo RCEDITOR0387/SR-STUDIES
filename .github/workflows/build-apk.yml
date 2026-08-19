@@ -181,13 +181,11 @@ jobs:
           # FLUTTER EMBEDDING V2
           # -----------------------------------------
 
-          # Remove old V1 application reference if present.
           text = text.replace(
               'android:name="io.flutter.app.FlutterApplication"',
               'android:name="${applicationName}"'
           )
 
-          # Add modern applicationName if missing.
           app_start = text.find("<application")
           app_end = text.find(">", app_start)
 
@@ -218,7 +216,7 @@ jobs:
               )
 
           # -----------------------------------------
-          # FORCE FLUTTER EMBEDDING V2
+          # FLUTTER EMBEDDING V2 METADATA
           # -----------------------------------------
 
           if "android:name=\"flutterEmbedding\"" in text:
@@ -315,13 +313,20 @@ jobs:
             echo "Custom icon file found."
           fi
 
-      # 15. Install ImageMagick
-      - name: Install ImageMagick
+      # 15. Check ImageMagick
+      - name: Check ImageMagick
+        shell: bash
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y imagemagick
+          echo "Checking ImageMagick..."
 
-          echo "ImageMagick installed."
+          if command -v convert >/dev/null 2>&1; then
+            echo "ImageMagick is already available."
+            convert -version | head -n 1
+          else
+            echo "ERROR: ImageMagick is not available on this GitHub runner."
+            echo "The workflow will stop here instead of waiting for apt-get."
+            exit 1
+          fi
 
       # 16. Generate Safe Android Launcher Icons
       - name: Generate Safe Android Launcher Icons
@@ -371,9 +376,6 @@ jobs:
           else
 
             echo "Creating safe SR STUDIES fallback icon."
-
-            # This is ONLY a temporary build icon.
-            # The original app_icon.png is NOT deleted.
 
             convert \
               -size 1024x1024 \
