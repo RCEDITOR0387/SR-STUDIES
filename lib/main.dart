@@ -1485,8 +1485,7 @@ class _SubjectVideosPageState
   }
 
   bool getIsLive(
-    Map<String, dynamic> data,
-  ) {
+    Map<String, dynamic> data) {
     final type =
         (data['type'] ?? '')
             .toString()
@@ -1500,18 +1499,8 @@ class _SubjectVideosPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading:
-            true,
-        leading:
-            const BackButton(),
-        title: Text(
-          widget.subjectName,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
+      // AppBar हटाया गया है।
+      // इसलिए ऊपर Subject वाला white bar नहीं आएगा।
       body: StreamBuilder<
           QuerySnapshot<
               Map<String, dynamic>>>(
@@ -1574,13 +1563,16 @@ class _SubjectVideosPageState
               keyboardDismissBehavior:
                   ScrollViewKeyboardDismissBehavior
                       .onDrag,
+
+              // AppBar हटने के बाद video सबसे ऊपर से शुरू होगा।
               padding:
                   const EdgeInsets.fromLTRB(
-                18,
-                14,
-                18,
+                0,
+                0,
+                0,
                 40,
               ),
+
               itemCount: docs.length,
               itemBuilder:
                   (context, index) {
@@ -2075,11 +2067,6 @@ class _VideoCardState
 
   // ==========================================================
   // SPEED MENU
-  //
-  // IMPORTANT:
-  // Height fixed नहीं है।
-  // पूरा list scroll होगा।
-  // इसलिए नीचे वाले 1.75x / 2x cut नहीं होंगे।
   // ==========================================================
 
   void showSpeedMenu() {
